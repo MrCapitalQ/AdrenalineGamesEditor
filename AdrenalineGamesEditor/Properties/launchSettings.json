@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "AdrenalineGamesEditor (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "AdrenalineGamesEditor (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
