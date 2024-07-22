@@ -1,13 +1,14 @@
 using Microsoft.UI.Xaml;
+using MrCapitalQ.AdrenalineGamesEditor.Games;
 
 namespace MrCapitalQ.AdrenalineGamesEditor;
 
 public sealed partial class MainWindow : Window
 {
-    public MainWindow() => InitializeComponent();
-
-    private void myButton_Click(object sender, RoutedEventArgs e)
+    public MainWindow()
     {
-        myButton.Content = "Clicked";
+        InitializeComponent();
+
+        RootFrame.Navigate(typeof(GamesListPage));
     }
 }

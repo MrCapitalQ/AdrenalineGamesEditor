@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page x:Class="MrCapitalQ.AdrenalineGamesEditor.Games.GamesListPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:MrCapitalQ.AdrenalineGamesEditor.Games"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d">
+
+    <Page.Resources>
+        <local:GameImageConverter x:Key="GameImageConverter" />
+
+        <DataTemplate x:Key="GameListItemTemplate"
+                      x:DataType="local:GameListItemViewModel">
+            <StackPanel Orientation="Horizontal">
+                <Border Width="44"
+                        Height="44"
+                        Margin="0,4,8,4"
+                        CornerRadius="{StaticResource ControlCornerRadius}">
+                    <Image Source="{x:Bind Converter={StaticResource GameImageConverter}}" />
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}" />
+                    <TextBlock Text="{x:Bind CommandLine, Mode=OneWay}"
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{StaticResource TextFillColorSecondaryBrush}" />
+                    <TextBlock Text="{x:Bind ExePath, Mode=OneWay}"
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{StaticResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+            </StackPanel>
+        </DataTemplate>
+    </Page.Resources>
+
+    <Grid>
+        <ListView ItemsSource="{x:Bind _viewModel.GamesCollectionView}"
+                  ItemTemplate="{StaticResource GameListItemTemplate}"
+                  SelectionMode="None"
+                  IsItemClickEnabled="True" />
+    </Grid>
+</Page>
