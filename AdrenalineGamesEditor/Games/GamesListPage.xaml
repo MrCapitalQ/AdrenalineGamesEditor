@@ -21,12 +21,6 @@
                 </Border>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}" />
-                    <TextBlock Text="{x:Bind CommandLine, Mode=OneWay}"
-                               Style="{StaticResource CaptionTextBlockStyle}"
-                               Foreground="{StaticResource TextFillColorSecondaryBrush}" />
-                    <TextBlock Text="{x:Bind ExePath, Mode=OneWay}"
-                               Style="{StaticResource CaptionTextBlockStyle}"
-                               Foreground="{StaticResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
             </StackPanel>
         </DataTemplate>

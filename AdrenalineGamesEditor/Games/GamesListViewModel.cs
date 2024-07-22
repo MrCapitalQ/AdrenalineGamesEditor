@@ -61,17 +61,6 @@ internal partial class GamesListViewModel : ObservableObject
 
 internal partial class GameListItemViewModel : ObservableObject
 {
-    public static GameListItemViewModel FromInfo(AdrenalineGameInfo adrenalineGameInfo) => new()
-    {
-        Id = adrenalineGameInfo.Id,
-        DisplayName = adrenalineGameInfo.DisplayName,
-        ImagePath = adrenalineGameInfo.ImagePath,
-        CommandLine = adrenalineGameInfo.CommandLine,
-        ExePath = adrenalineGameInfo.ExePath,
-        IsManual = adrenalineGameInfo.IsManual
-    };
-
-    public Guid Id { get; init; }
 
     [ObservableProperty]
     private string _displayName = string.Empty;
@@ -80,19 +69,26 @@ internal partial class GameListItemViewModel : ObservableObject
     private string _imagePath = string.Empty;
 
     [ObservableProperty]
-    private string _commandLine = string.Empty;
-
-    [ObservableProperty]
     private string _exePath = string.Empty;
 
     [ObservableProperty]
     private bool _isManual;
 
+    public Guid Id { get; init; }
+
+    public static GameListItemViewModel FromInfo(AdrenalineGameInfo adrenalineGameInfo) => new()
+    {
+        Id = adrenalineGameInfo.Id,
+        DisplayName = adrenalineGameInfo.DisplayName,
+        ImagePath = adrenalineGameInfo.ImagePath,
+        ExePath = adrenalineGameInfo.ExePath,
+        IsManual = adrenalineGameInfo.IsManual
+    };
+
     public void UpdateFromInfo(AdrenalineGameInfo adrenalineGameInfo)
     {
         DisplayName = adrenalineGameInfo.DisplayName;
         ImagePath = adrenalineGameInfo.ImagePath;
-        CommandLine = adrenalineGameInfo.CommandLine;
         ExePath = adrenalineGameInfo.ExePath;
         IsManual = adrenalineGameInfo.IsManual;
     }
