@@ -11,21 +11,24 @@ namespace MrCapitalQ.AdrenalineGamesEditor.Games;
 internal partial class GamesListViewModel : ObservableObject
 {
     private readonly AdrenalineGamesDataService _dataService;
-
+    private readonly MsStoreAppsService _msStoreAppsService;
     private readonly Dictionary<Guid, GameListItemViewModel> _gamesDictionary = [];
-    private ObservableCollection<GameListItemViewModel> _games = [];
+    private readonly ObservableCollection<GameListItemViewModel> _games = [];
 
     public AdvancedCollectionView GamesCollectionView { get; }
 
-    public GamesListViewModel(AdrenalineGamesDataService dataService)
+    public GamesListViewModel(AdrenalineGamesDataService dataService, MsStoreAppsService msStoreAppsService)
     {
         _dataService = dataService;
+        _msStoreAppsService = msStoreAppsService;
         _dataService.DataChanged += DataService_DataChanged;
 
         GamesCollectionView = new(_games, true);
         GamesCollectionView.SortDescriptions.Add(new(nameof(GameListItemViewModel.DisplayName), SortDirection.Ascending));
 
         UpdateGamesList();
+
+        _ = _msStoreAppsService.GetInstalledAppsAsync();
     }
 
     private void UpdateGamesList()

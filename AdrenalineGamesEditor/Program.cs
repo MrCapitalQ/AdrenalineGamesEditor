@@ -20,6 +20,7 @@ internal class Program
         builder.Services.AddSingleton<GamesListViewModel>();
 
         builder.Services.AddSingleton<AdrenalineGamesDataService>();
+        builder.Services.AddSingleton<MsStoreAppsService>();
 
         var host = builder.Build();
 
