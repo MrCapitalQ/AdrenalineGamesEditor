@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 namespace MrCapitalQ.AdrenalineGamesEditor;
@@ -8,7 +9,68 @@ public class AdrenalineGamesDataService
 {
     public event EventHandler? DataChanged;
 
-    private static readonly JsonSerializerOptions s_serializerOptions = new(JsonSerializerDefaults.Web);
+    private const string DefaultNewGameEntry = """
+        {
+            "amdId": -1,
+            "appDisplayScalingSet": "FALSE",
+            "appHistogramCapture": "FALSE",
+            "arguments": "",
+            "athena_support": "FALSE",
+            "auto_enable_ps_state": "USEGLOBAL",
+            "averageFPS": -1,
+            "color_enabled": "FALSE",
+            "colors": [
+            ],
+            "commandline": "",
+            "exe_path": "",
+            "eyefinity_enabled": "FALSE",
+            "framegen_enabled": 0,
+            "freeSyncForceSet": "FALSE",
+            "guid": "",
+            "has_framegen_profile": "FALSE",
+            "has_upscaling_profile": "FALSE",
+            "hidden": "FALSE",
+            "image_info": "",
+            "install_location": "",
+            "installer_id": "",
+            "is_appforlink": "FALSE",
+            "is_favourite": "FALSE",
+            "last_played_mins": 0,
+            "lastlaunchtime": "",
+            "lastperformancereporttime": "",
+            "lnk_path": "",
+            "manual": "TRUE",
+            "origin_id": -1,
+            "overdrive": [
+            ],
+            "overdrive_enabled": "FALSE",
+            "percentile95_msec": -1,
+            "profileCustomized": "FALSE",
+            "profileEnabled": "TRUE",
+            "rayTracing": "FALSE",
+            "rendering_process": "",
+            "revertuserprofiletype": -1,
+            "smartshift_enabled": "FALSE",
+            "special_flags": "",
+            "steam_id": -1,
+            "title": "",
+            "total_played_mins": 0,
+            "uninstall_location": -1,
+            "uninstalled": "FALSE",
+            "uplay_id": -1,
+            "upscaling_enabled": "FALSE",
+            "upscaling_sharpness": 75,
+            "upscaling_target_resolution": "",
+            "upscaling_use_borderless": "FALSE",
+            "useEyefinity": "FALSE",
+            "userprofiletype": -1,
+            "week_played_mins": 0
+        }
+        """;
+    private static readonly JsonSerializerOptions s_serializerOptions = new(JsonSerializerDefaults.Web)
+    {
+        WriteIndented = true
+    };
 
     private readonly string _amdGameDbDirectoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"AMD\CN");
     private readonly string _amdGameDbFileName = "gmdb.blb";
@@ -31,6 +93,32 @@ public class AdrenalineGamesDataService
     }
 
     public IEnumerable<AdrenalineGameInfo> GamesData { get; private set; } = [];
+
+    public void AddGame(string title, string commandLine, string exePath, string imageInfo)
+    {
+        using var fileStream = new FileStream(_amdGameDbFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        var rootNode = JsonNode.Parse(fileStream);
+        if (rootNode is null)
+            return;
+
+        var gamesNode = rootNode["games"]?.AsArray();
+        if (gamesNode is null)
+            return;
+
+        var newGame = JsonNode.Parse(DefaultNewGameEntry);
+        if (newGame is null)
+            return;
+
+        // TODO: ensure unique
+        newGame["guid"] = $"{{{Guid.NewGuid()}}}";
+        newGame["title"] = title;
+        newGame["commandline"] = commandLine;
+        newGame["exe_path"] = exePath;
+        newGame["image_info"] = imageInfo;
+
+        gamesNode.Add(newGame);
+        File.WriteAllText(_amdGameDbFilePath, rootNode.ToJsonString(s_serializerOptions));
+    }
 
     private async Task UpdateAsync()
     {

@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.WinUI.Collections;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -27,8 +28,6 @@ internal partial class GamesListViewModel : ObservableObject
         GamesCollectionView.SortDescriptions.Add(new(nameof(GameListItemViewModel.DisplayName), SortDirection.Ascending));
 
         UpdateGamesList();
-
-        _ = _msStoreAppsService.GetInstalledAppsAsync();
     }
 
     private void UpdateGamesList()
@@ -56,6 +55,14 @@ internal partial class GamesListViewModel : ObservableObject
             _games.Remove(_gamesDictionary[id]);
             _gamesDictionary.Remove(id);
         }
+    }
+
+    [RelayCommand]
+    private async Task AddNewGame()
+    {
+        var games = (await _msStoreAppsService.GetInstalledAppsAsync()).Where(x => x.IsGame).ToList();
+        var game = games.Last();
+        _dataService.AddGame(game.DisplayName, game.ApplicationUserModelId, game.ExecutablePath ?? string.Empty, game.LargeLogoPath ?? string.Empty);
     }
 
     private void DataService_DataChanged(object? sender, EventArgs e)

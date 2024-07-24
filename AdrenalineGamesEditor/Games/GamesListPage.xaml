@@ -27,9 +27,16 @@
     </Page.Resources>
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Button Content="Add"
+                Command="{x:Bind _viewModel.AddNewGameCommand}" />
         <ListView ItemsSource="{x:Bind _viewModel.GamesCollectionView}"
                   ItemTemplate="{StaticResource GameListItemTemplate}"
                   SelectionMode="None"
-                  IsItemClickEnabled="True" />
+                  IsItemClickEnabled="True"
+                  Grid.Row="1" />
     </Grid>
 </Page>
