@@ -12,7 +12,6 @@ public class MsStoreAppsService(ILogger<MsStoreAppsService> logger)
     private const string MicrosoftGameConfigFileName = "MicrosoftGame.config";
 
     private readonly PackageManager _packageManager = new();
-    private readonly XmlSerializer _appxManifestApplicationSerializer = new(typeof(AppxManifestApplication));
     private readonly XmlSerializer _appxManifestSerializer = new(typeof(AppxManifestPackage));
     private readonly ILogger<MsStoreAppsService> _logger = logger;
 
@@ -38,10 +37,7 @@ public class MsStoreAppsService(ILogger<MsStoreAppsService> logger)
                 return [];
             }
 
-            using var reader = new XmlTextReader(path)
-            {
-                Namespaces = false
-            };
+            using var reader = new XmlTextReader(path);
             if (_appxManifestSerializer.Deserialize(reader) is not AppxManifestPackage manifest)
             {
                 _logger.LogWarning("Appxmanifest could not be deserialized for package {PackageName}.", package.Id.FullName);
@@ -116,7 +112,7 @@ public class MsStoreAppsService(ILogger<MsStoreAppsService> logger)
 
 public record MsStoreAppInfo(string DisplayName, string ApplicationUserModelId, string? SmallLogoPath, string? LargeLogoPath, string? ExecutablePath, bool IsGame);
 
-[XmlRoot("Package")]
+[XmlRoot("Package", Namespace = "http://schemas.microsoft.com/appx/manifest/foundation/windows10", IsNullable = false)]
 public class AppxManifestPackage
 {
     [XmlArray("Applications")]
@@ -132,7 +128,7 @@ public record AppxManifestApplication
     [XmlAttribute]
     public string? Executable { get; init; }
 
-    [XmlElement("VisualElements")]
+    [XmlElement("VisualElements", Namespace = "http://schemas.microsoft.com/appx/manifest/uap/windows10")]
     public AppxManifestApplicationVisualElements? VisualElements { get; init; }
 
 }
