@@ -65,6 +65,8 @@ public class MsStoreAppsService(ILogger<MsStoreAppsService> logger)
                 if (isGame)
                     exePath = GetGameExecutable(package.InstalledPath, applicationId) ?? exePath;
 
+                var executables = GetPackageExecutables(package.InstalledPath);
+
                 result.Add(new(appListEntry.DisplayInfo.DisplayName,
                     appListEntry.AppUserModelId,
                     GetFullLogoPath(package.InstalledPath, application?.VisualElements?.Square44x44Logo),
@@ -107,7 +109,7 @@ public class MsStoreAppsService(ILogger<MsStoreAppsService> logger)
         var logoFilePaths = Directory.GetFiles(Path.GetDirectoryName(Path.Combine(installPath, logoPath))!, Path.GetFileNameWithoutExtension(logoPath) + ".scale-*" + Path.GetExtension(logoPath));
         return logoFilePaths.FirstOrDefault() ?? Path.Combine(installPath, logoPath);
     }
-
+    private IEnumerable<string> GetPackageExecutables(string installPath) => Directory.GetFiles(installPath, "*.exe", SearchOption.AllDirectories);
 }
 
 public record MsStoreAppInfo(string DisplayName, string ApplicationUserModelId, string? SmallLogoPath, string? LargeLogoPath, string? ExecutablePath, bool IsGame);
