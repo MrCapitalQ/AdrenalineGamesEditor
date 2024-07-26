@@ -4,6 +4,7 @@ using CommunityToolkit.WinUI.Collections;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 
@@ -60,9 +61,26 @@ internal partial class GamesListViewModel : ObservableObject
     [RelayCommand]
     private async Task AddNewGame()
     {
-        var games = (await _msStoreAppsService.GetInstalledAppsAsync()).Where(x => x.IsGame).ToList();
+        var games = (await _msStoreAppsService.GetInstalledAppsAsync()).Where(x => x.IsGame && x.DisplayName == "Flock").ToList();
         var game = games.Last();
         _dataService.AddGame(game.DisplayName, game.ApplicationUserModelId, game.ExecutablePath ?? string.Empty, game.LargeLogoPath ?? string.Empty);
+
+        await Task.Delay(1000);
+
+        // Restart RadeonSoftware.exe
+        foreach (var process in Process.GetProcessesByName("RadeonSoftware"))
+        {
+            var processPath = process.MainModule?.FileName;
+            if (string.IsNullOrEmpty(processPath))
+                continue;
+
+            process.Kill();
+            await process.WaitForExitAsync();
+
+            Process.Start(processPath);
+        }
+
+
     }
 
     private void DataService_DataChanged(object? sender, EventArgs e)

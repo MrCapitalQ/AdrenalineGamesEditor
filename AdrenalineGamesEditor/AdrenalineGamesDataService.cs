@@ -138,7 +138,6 @@ public class AdrenalineGamesDataService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update Adrenaline games data.");
-            throw;
         }
     }
 
@@ -148,7 +147,13 @@ public class AdrenalineGamesDataService
         raiseEvent?.Invoke(this, EventArgs.Empty);
     }
 
-    private async void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e) => await UpdateAsync();
+    private async void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
+    {
+        _fileSystemWatcher.Changed -= FileSystemWatcher_Changed;
+        await Task.Delay(1000);
+        await UpdateAsync();
+        _fileSystemWatcher.Changed += FileSystemWatcher_Changed;
+    }
 
     private class AdrenalineGameDataModel
     {
