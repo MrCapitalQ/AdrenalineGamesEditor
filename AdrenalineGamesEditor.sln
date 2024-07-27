@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.35027.167
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdrenalineGamesEditor", "AdrenalineGamesEditor\AdrenalineGamesEditor.csproj", "{9197A647-13DB-4BF4-9283-05076A376AFC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdrenalineGamesEditor", "src\AdrenalineGamesEditor\AdrenalineGamesEditor.csproj", "{9197A647-13DB-4BF4-9283-05076A376AFC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4D57CD2B-0591-4EC8-941E-73915833382D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +38,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9197A647-13DB-4BF4-9283-05076A376AFC} = {4D57CD2B-0591-4EC8-941E-73915833382D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12E0CDA4-2F42-440C-8EB9-6F00CFDC2996}
