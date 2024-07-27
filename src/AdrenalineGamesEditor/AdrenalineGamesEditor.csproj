@@ -33,6 +33,10 @@
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240627000" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\AdrenalineGamesEditor.Infrastructure\AdrenalineGamesEditor.Infrastructure.csproj" />
+  </ItemGroup>
 
   <!--
     Defining the "Msix" ProjectCapability here allows the Single-project MSIX Packaging
