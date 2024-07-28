@@ -1,10 +1,13 @@
 ﻿using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media.Imaging;
+using MrCapitalQ.AdrenalineGamesEditor.Core;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Drawing.Imaging;
 
 namespace MrCapitalQ.AdrenalineGamesEditor.Games;
 
+[ExcludeFromCodeCoverage(Justification = ExcludeFromCoverageJustifications.RequiresUIThread)]
 internal class GameImageConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, string language)
