@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MrCapitalQ.AdrenalineGamesEditor.Games;
 using MrCapitalQ.AdrenalineGamesEditor.Infrastructure;
 using System.Diagnostics.CodeAnalysis;
 
@@ -16,6 +17,8 @@ internal class Program
 
         builder.Services.AddSingleton<App>();
         builder.Services.AddSingleton<MainWindow>();
+
+        builder.Services.AddSingleton<GamesListViewModel>();
 
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddFileSystem();
