@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline.Models;
 using MrCapitalQ.AdrenalineGamesEditor.Core.FileSystem;
 using System.Collections.Immutable;
 using System.Text.Json;

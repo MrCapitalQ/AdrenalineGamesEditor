@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline;
+namespace MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline.Models;
 
-public class AdrenalineGamesDataModel
+internal class AdrenalineGamesDataModel
 {
     [JsonPropertyName("games")]
     public IEnumerable<AdrenalineGameModel> Games { get; init; } = [];
