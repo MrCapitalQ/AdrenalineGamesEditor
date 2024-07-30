@@ -1,5 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.WinUI.Collections;
+using MrCapitalQ.AdrenalineGamesEditor.Apps;
 using MrCapitalQ.AdrenalineGamesEditor.Core;
 using MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline;
 using System.Collections.ObjectModel;
@@ -10,17 +13,19 @@ internal partial class GamesListViewModel : ObservableObject
 {
     private readonly IAdrenalineGamesDataService _dataService;
     private readonly IDispatcherQueue _dispatcherQueue;
+    private readonly IMessenger _messenger;
     private readonly Dictionary<Guid, GameListItemViewModel> _gamesDictionary = [];
     private readonly ObservableCollection<GameListItemViewModel> _games = [];
 
     public AdvancedCollectionView GamesCollectionView { get; }
 
-    public GamesListViewModel(IAdrenalineGamesDataService dataService, IDispatcherQueue dispatcherQueue)
+    public GamesListViewModel(IAdrenalineGamesDataService dataService, IDispatcherQueue dispatcherQueue, IMessenger messenger)
     {
         _dataService = dataService;
         _dataService.GamesDataChanged += DataService_GamesDataChanged;
 
         _dispatcherQueue = dispatcherQueue;
+        _messenger = messenger;
 
         GamesCollectionView = new(_games, true);
         GamesCollectionView.SortDescriptions.Add(new(nameof(GameListItemViewModel.DisplayName), SortDirection.Ascending));
@@ -56,6 +61,12 @@ internal partial class GamesListViewModel : ObservableObject
                 _gamesDictionary.Remove(id);
             }
         });
+    }
+
+    [RelayCommand]
+    private async Task AddGameAsync()
+    {
+        var selectedApp = await _messenger.Send<PickPackagedAppRequestMessage>();
     }
 
     private void DataService_GamesDataChanged(object? sender, EventArgs e) => UpdateGamesList();

@@ -6,4 +6,5 @@ public record PackagedAppListing(string DisplayName,
     DateTimeOffset InstalledDate,
     string? Square44x44Logo,
     string? Square150x150Logo,
-    bool IsGame);
+    bool IsGame)
+    : IPackagedAppIconInfo;

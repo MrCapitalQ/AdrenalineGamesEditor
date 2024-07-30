@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MrCapitalQ.AdrenalineGamesEditor.Core;
 using MrCapitalQ.AdrenalineGamesEditor.Games;
@@ -23,6 +24,7 @@ internal class Program
 
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<IDispatcherQueue, DispatcherQueueAdapter>();
+        builder.Services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
         builder.Services.AddFileSystem();
         builder.Services.AddAdrenalineGamesData();
         builder.Services.AddPackagedApps();
