@@ -15,13 +15,6 @@ public class AdrenalineGamesDataServiceTests
     private readonly FakeTimeProvider _timeProvider = new();
     private readonly FakeLogger<AdrenalineGamesDataService> _logger = new();
 
-    //private readonly AdrenalineGamesDataService _service;
-
-    public AdrenalineGamesDataServiceTests()
-    {
-        //_service = new(_fileSystemWatcher, _fileReadStreamCreator, _timeProvider, _fakeLogger);
-    }
-
     [Fact]
     public void Ctor_WithGamesData_PopulatesGamesData()
     {
