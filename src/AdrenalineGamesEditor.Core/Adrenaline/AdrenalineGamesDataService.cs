@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
-using MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline;
+using MrCapitalQ.AdrenalineGamesEditor.Core.FileSystem;
 using System.Collections.Immutable;
 using System.Text.Json;
 
-namespace MrCapitalQ.AdrenalineGamesEditor.Infrastructure.Adrenaline;
+namespace MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline;
 
 internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
 {
@@ -17,14 +17,22 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
     private readonly string _amdGameDbDirectoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"AMD\CN");
     private readonly string _amdGameDbFileName = "gmdb.blb";
     private readonly string _amdGameDbFilePath;
-    private readonly FileSystemWatcher _fileSystemWatcher = new();
+    private readonly IFileSystemWatcher _fileSystemWatcher;
+    private readonly IReadFileStreamCreator _readFileStreamCreator;
+    private readonly TimeProvider _timeProvider;
     private readonly ILogger<AdrenalineGamesDataService> _logger;
 
-    public AdrenalineGamesDataService(ILogger<AdrenalineGamesDataService> logger)
+    public AdrenalineGamesDataService(IFileSystemWatcher fileSystemWatcher,
+        IReadFileStreamCreator fileReadStreamCreator,
+        TimeProvider timeProvider,
+        ILogger<AdrenalineGamesDataService> logger)
     {
-        _logger = logger;
-
         _amdGameDbFilePath = Path.Combine(_amdGameDbDirectoryPath, _amdGameDbFileName);
+
+        _fileSystemWatcher = fileSystemWatcher;
+        _readFileStreamCreator = fileReadStreamCreator;
+        _timeProvider = timeProvider;
+        _logger = logger;
 
         _fileSystemWatcher.Path = _amdGameDbDirectoryPath;
         _fileSystemWatcher.Filter = _amdGameDbFileName;
@@ -40,8 +48,8 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
     {
         try
         {
-            using var fileStream = new FileStream(_amdGameDbFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            var data = await JsonSerializer.DeserializeAsync<AdrenalineGameDataModel>(fileStream, s_serializerOptions);
+            using var fileStream = _readFileStreamCreator.Open(_amdGameDbFilePath);
+            var data = await JsonSerializer.DeserializeAsync<AdrenalineGamesDataModel>(fileStream, s_serializerOptions);
 
             GamesData = data?.Games
                 .Where(x => !x.IsHidden && !x.IsAppForLink)
@@ -65,8 +73,10 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
     private async void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
     {
         _fileSystemWatcher.Changed -= FileSystemWatcher_Changed;
-        await Task.Delay(1000);
+
+        await Task.Delay(TimeSpan.FromSeconds(1), _timeProvider);
         await UpdateGamesDataAsync();
+
         _fileSystemWatcher.Changed += FileSystemWatcher_Changed;
     }
 }

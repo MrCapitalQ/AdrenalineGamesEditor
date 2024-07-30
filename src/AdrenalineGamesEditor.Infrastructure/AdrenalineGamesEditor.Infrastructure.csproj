@@ -21,4 +21,8 @@
     <AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Adrenaline\" />
+  </ItemGroup>
+
 </Project>

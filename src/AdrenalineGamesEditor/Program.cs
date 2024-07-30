@@ -17,7 +17,9 @@ internal class Program
         builder.Services.AddSingleton<App>();
         builder.Services.AddSingleton<MainWindow>();
 
-        builder.Services.AddAdrenalineGamesDataService();
+        builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddFileSystem();
+        builder.Services.AddAdrenalineGamesData();
 
         var host = builder.Build();
 

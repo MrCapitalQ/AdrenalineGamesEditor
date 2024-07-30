@@ -12,7 +12,7 @@ public class BracedGuidJsonConverterTests
     private readonly BracedGuidJsonConverter _converter = new();
 
     [Fact]
-    public void Read_ConvertsFromJsonValue()
+    public void Read_BracedGuidValue_ConvertsFromJsonValue()
     {
         var jsonValue = "\"{be540504-826a-4fc6-8ea2-fca1a4373f63}\"";
         var expected = Guid.Parse("be540504-826a-4fc6-8ea2-fca1a4373f63");
@@ -22,6 +22,20 @@ public class BracedGuidJsonConverterTests
         var actual = _converter.Read(ref reader, typeof(Guid), _options);
 
         Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void Read_NullValue_ThrowsJsonException()
+    {
+        var jsonValue = "null";
+
+        Assert.Throws<JsonException>(() =>
+        {
+            var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(jsonValue));
+            reader.Read();
+
+            _converter.Read(ref reader, typeof(Guid), _options);
+        });
     }
 
     [Fact]
