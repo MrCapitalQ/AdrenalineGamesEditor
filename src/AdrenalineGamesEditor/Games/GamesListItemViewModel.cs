@@ -5,7 +5,6 @@ namespace MrCapitalQ.AdrenalineGamesEditor.Games;
 
 internal partial class GameListItemViewModel : ObservableObject
 {
-
     [ObservableProperty]
     private string _displayName = string.Empty;
 
