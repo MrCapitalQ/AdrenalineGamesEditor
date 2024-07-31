@@ -1,9 +1,9 @@
 ﻿using MrCapitalQ.AdrenalineGamesEditor.Core.Json;
 using System.Text.Json.Serialization;
 
-namespace MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline;
+namespace MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline.Models;
 
-public record AdrenalineGameModel
+internal record AdrenalineGameModel
 {
     [JsonConverter(typeof(BracedGuidJsonConverter))]
     [JsonPropertyName("guid")]

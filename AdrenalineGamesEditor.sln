@@ -13,7 +13,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{C5E0B47A-2
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdrenalineGamesEditor.Core.Tests", "test\AdrenalineGamesEditor.Core.Tests\AdrenalineGamesEditor.Core.Tests.csproj", "{5D3F1585-9E40-4573-84A9-7F00A307E086}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdrenalineGamesEditor.Infrastructure", "src\AdrenalineGamesEditor.Infrastructure\AdrenalineGamesEditor.Infrastructure.csproj", "{90B072DF-208A-4735-9E0C-E597740EDBA2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdrenalineGamesEditor.Infrastructure", "src\AdrenalineGamesEditor.Infrastructure\AdrenalineGamesEditor.Infrastructure.csproj", "{90B072DF-208A-4735-9E0C-E597740EDBA2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdrenalineGamesEditor.Tests", "test\AdrenalineGamesEditor.Tests\AdrenalineGamesEditor.Tests.csproj", "{52715EBD-9BC8-4A77-9AB9-6CF1CA737EB2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -79,6 +81,18 @@ Global
 		{90B072DF-208A-4735-9E0C-E597740EDBA2}.Release|x64.Build.0 = Release|x64
 		{90B072DF-208A-4735-9E0C-E597740EDBA2}.Release|x86.ActiveCfg = Release|x86
 		{90B072DF-208A-4735-9E0C-E597740EDBA2}.Release|x86.Build.0 = Release|x86
+		{52715EBD-9BC8-4A77-9AB9-6CF1CA737EB2}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{52715EBD-9BC8-4A77-9AB9-6CF1CA737EB2}.Debug|ARM64.Build.0 = Debug|ARM64
+		{52715EBD-9BC8-4A77-9AB9-6CF1CA737EB2}.Debug|x64.ActiveCfg = Debug|x64
+		{52715EBD-9BC8-4A77-9AB9-6CF1CA737EB2}.Debug|x64.Build.0 = Debug|x64
+		{52715EBD-9BC8-4A77-9AB9-6CF1CA737EB2}.Debug|x86.ActiveCfg = Debug|x86
+		{52715EBD-9BC8-4A77-9AB9-6CF1CA737EB2}.Debug|x86.Build.0 = Debug|x86
+		{52715EBD-9BC8-4A77-9AB9-6CF1CA737EB2}.Release|ARM64.ActiveCfg = Release|ARM64
+		{52715EBD-9BC8-4A77-9AB9-6CF1CA737EB2}.Release|ARM64.Build.0 = Release|ARM64
+		{52715EBD-9BC8-4A77-9AB9-6CF1CA737EB2}.Release|x64.ActiveCfg = Release|x64
+		{52715EBD-9BC8-4A77-9AB9-6CF1CA737EB2}.Release|x64.Build.0 = Release|x64
+		{52715EBD-9BC8-4A77-9AB9-6CF1CA737EB2}.Release|x86.ActiveCfg = Release|x86
+		{52715EBD-9BC8-4A77-9AB9-6CF1CA737EB2}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -88,6 +102,7 @@ Global
 		{E22A3C7A-0C19-4EAE-9B6F-BD76EDFB7D5C} = {4D57CD2B-0591-4EC8-941E-73915833382D}
 		{5D3F1585-9E40-4573-84A9-7F00A307E086} = {C5E0B47A-2C26-47EB-8B5B-919E98ED3C45}
 		{90B072DF-208A-4735-9E0C-E597740EDBA2} = {4D57CD2B-0591-4EC8-941E-73915833382D}
+		{52715EBD-9BC8-4A77-9AB9-6CF1CA737EB2} = {C5E0B47A-2C26-47EB-8B5B-919E98ED3C45}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12E0CDA4-2F42-440C-8EB9-6F00CFDC2996}
