@@ -5,6 +5,7 @@ using CommunityToolkit.WinUI.Collections;
 using MrCapitalQ.AdrenalineGamesEditor.Apps;
 using MrCapitalQ.AdrenalineGamesEditor.Core;
 using MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline;
+using MrCapitalQ.AdrenalineGamesEditor.Shared;
 using System.Collections.ObjectModel;
 
 namespace MrCapitalQ.AdrenalineGamesEditor.Games;
@@ -66,7 +67,8 @@ internal partial class GamesListViewModel : ObservableObject
     [RelayCommand]
     private async Task AddGameAsync()
     {
-        var selectedApp = await _messenger.Send<PickPackagedAppRequestMessage>();
+        if ((await _messenger.Send<PickPackagedAppRequestMessage>()) is { } selectedApp)
+            _messenger.Send(new NavigateMessage(typeof(GameEditPage), selectedApp.AppUserModelId));
     }
 
     private void DataService_GamesDataChanged(object? sender, EventArgs e) => UpdateGamesList();

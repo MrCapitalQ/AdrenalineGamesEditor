@@ -1,10 +1,12 @@
 ﻿namespace MrCapitalQ.AdrenalineGamesEditor.Core.Apps;
 
-public record PackagedAppListing(string DisplayName,
+public record PackagedAppInfo(string DisplayName,
     string AppUserModelId,
     string InstalledPath,
     DateTimeOffset InstalledDate,
     string? Square44x44Logo,
     string? Square150x150Logo,
-    bool IsGame)
+    bool IsGame,
+    string? ExecutablePath,
+    IEnumerable<string> ExecutablePaths)
     : IPackagedAppIconInfo;
