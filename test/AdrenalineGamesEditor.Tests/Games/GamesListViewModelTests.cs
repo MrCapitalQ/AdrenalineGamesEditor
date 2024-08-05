@@ -5,6 +5,7 @@ using MrCapitalQ.AdrenalineGamesEditor.Core;
 using MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline;
 using MrCapitalQ.AdrenalineGamesEditor.Core.Apps;
 using MrCapitalQ.AdrenalineGamesEditor.Games;
+using MrCapitalQ.AdrenalineGamesEditor.Shared;
 
 namespace MrCapitalQ.AdrenalineGamesEditor.Tests.Games;
 
@@ -56,19 +57,38 @@ public class GamesListViewModelTests
     }
 
     [Fact]
-    public void AddGameCommand_SendsPickPackagedAppRequestMessage()
+    public void AddGameCommand_NoGameSelected_DoesNothing()
     {
         var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger);
-        _messenger.Send(Arg.Any<PickPackagedAppRequestMessage>(), Arg.Any<TestMessengerToken>()).Returns((x) =>
+        _messenger.Send(Arg.Any<PickPackagedAppRequestMessage>(), Arg.Any<TestMessengerToken>()).Returns(x =>
         {
             var request = x.Arg<PickPackagedAppRequestMessage>();
-            request.Reply(new PackagedAppListing("Test", "ID!App", "Path", DateTimeOffset.MinValue, null, null, true));
+            request.Reply(Task.FromResult<PackagedAppListing?>(null));
             return request;
         });
 
         viewModel.AddGameCommand.Execute(null);
 
         _messenger.Received(1).Send(Arg.Any<PickPackagedAppRequestMessage>(), Arg.Any<TestMessengerToken>());
+        _messenger.Received(0).Send(Arg.Any<NavigateMessage>(), Arg.Any<TestMessengerToken>());
+    }
+
+    [Fact]
+    public void AddGameCommand_GameSelected_SendsNavigateMessageWithSelectedGameId()
+    {
+        var selectedGame = new PackagedAppListing("Test Game", "Package!App", @"C:\InstalledLocation", DateTimeOffset.MinValue, null, null, true);
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger);
+        _messenger.Send(Arg.Any<PickPackagedAppRequestMessage>(), Arg.Any<TestMessengerToken>()).Returns(x =>
+        {
+            var request = x.Arg<PickPackagedAppRequestMessage>();
+            request.Reply(Task.FromResult<PackagedAppListing?>(selectedGame));
+            return request;
+        });
+
+        viewModel.AddGameCommand.Execute(null);
+
+        _messenger.Received(1).Send(Arg.Any<PickPackagedAppRequestMessage>(), Arg.Any<TestMessengerToken>());
+        _messenger.Received(1).Send(Arg.Is<NavigateMessage>(x => (x.Parameter as string) == selectedGame.AppUserModelId), Arg.Any<TestMessengerToken>());
     }
 
     private static AdrenalineGameInfo CreateGameInfo((Guid Id, string DisplayName) data) => new(data.Id,

@@ -14,7 +14,7 @@ public sealed partial class PackagedAppPicker : ContentDialog
 {
     private readonly SortDescription _displayNameSort = new(nameof(PackagedAppListing.DisplayName), SortDirection.Ascending);
     private readonly SortDescription _dateInstalledSort = new(nameof(PackagedAppListing.InstalledDate), SortDirection.Descending);
-    private readonly SortDescription _idSort = new(nameof(PackagedAppListing.ApplicationUserModelId), SortDirection.Ascending);
+    private readonly SortDescription _idSort = new(nameof(PackagedAppListing.AppUserModelId), SortDirection.Ascending);
     private readonly IPackagedAppsService _packageService;
     private AdvancedCollectionView? _appsCollectionView;
 
