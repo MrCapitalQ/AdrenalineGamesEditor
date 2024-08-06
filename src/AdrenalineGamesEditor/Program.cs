@@ -25,6 +25,7 @@ internal class Program
         builder.Services.AddSingleton<IDispatcherQueue, DispatcherQueueAdapter>();
         builder.Services.AddFileSystem();
         builder.Services.AddAdrenalineGamesData();
+        builder.Services.AddPackagedApps();
 
         var host = builder.Build();
 
