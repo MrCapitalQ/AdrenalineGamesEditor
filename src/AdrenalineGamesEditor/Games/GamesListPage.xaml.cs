@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
 using MrCapitalQ.AdrenalineGamesEditor.Apps;
 using MrCapitalQ.AdrenalineGamesEditor.Core;
 using MrCapitalQ.AdrenalineGamesEditor.Core.Apps;
@@ -12,15 +13,19 @@ namespace MrCapitalQ.AdrenalineGamesEditor.Games;
 public sealed partial class GamesListPage : Page
 {
     private readonly GamesListViewModel _viewModel;
+    private readonly IMessenger _messenger;
 
     public GamesListPage()
     {
         InitializeComponent();
 
         _viewModel = App.Current.Services.GetRequiredService<GamesListViewModel>();
+        _messenger = App.Current.Services.GetRequiredService<IMessenger>();
+    }
 
-        var messenger = App.Current.Services.GetRequiredService<IMessenger>();
-        messenger.Register<GamesListPage, PickPackagedAppRequestMessage>(this, (r, m) =>
+    protected override void OnNavigatedTo(NavigationEventArgs e)
+    {
+        _messenger.Register<GamesListPage, PickPackagedAppRequestMessage>(this, (r, m) =>
         {
             if (r.Content.XamlRoot is null)
                 return;
@@ -40,4 +45,6 @@ public sealed partial class GamesListPage : Page
             m.Reply(tcs.Task);
         });
     }
+
+    protected override void OnNavigatedFrom(NavigationEventArgs e) => _messenger.UnregisterAll(this);
 }
