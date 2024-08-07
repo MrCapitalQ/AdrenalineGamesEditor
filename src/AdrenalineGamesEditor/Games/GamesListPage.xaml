@@ -27,8 +27,28 @@
     </Page.Resources>
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <CommandBar Background="Transparent"
+                    IsOpen="False"
+                    DefaultLabelPosition="Right"
+                    VerticalContentAlignment="Center">
+            <CommandBar.Content>
+                <TextBlock Text="Games"
+                           Style="{StaticResource TitleTextBlockStyle}"
+                           Margin="12,0" />
+            </CommandBar.Content>
+            <AppBarButton Icon="Add"
+                          Label="Add"
+                          Command="{x:Bind _viewModel.AddGameCommand}" />
+        </CommandBar>
+
         <ListView ItemsSource="{x:Bind _viewModel.GamesCollectionView}"
                   ItemTemplate="{StaticResource GameListItemTemplate}"
-                  SelectionMode="None" />
+                  SelectionMode="None"
+                  Grid.Row="1" />
     </Grid>
 </Page>

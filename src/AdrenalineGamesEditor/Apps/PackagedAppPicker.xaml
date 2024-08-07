@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog x:Class="MrCapitalQ.AdrenalineGamesEditor.Apps.PackagedAppPicker"
+               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               xmlns:local="using:MrCapitalQ.AdrenalineGamesEditor.Apps"
+               xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+               xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+               xmlns:apps="using:MrCapitalQ.AdrenalineGamesEditor.Core.Apps"
+               mc:Ignorable="d"
+               Style="{StaticResource DefaultContentDialogStyle}"
+               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
+               Title="Add a game"
+               PrimaryButtonText="Ok"
+               CloseButtonText="Cancel"
+               DefaultButton="Primary"
+               IsPrimaryButtonEnabled="False">
+    <ContentDialog.Resources>
+        <DataTemplate x:Key="AppListItemTemplate"
+                      x:DataType="apps:PackagedAppListing">
+            <StackPanel Orientation="Horizontal">
+                <local:PackagedAppIcon Package="{x:Bind}"
+                                       Margin="0,8,16,8"
+                                       CornerRadius="{StaticResource ControlCornerRadius}" />
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{x:Bind DisplayName}" />
+                </StackPanel>
+            </StackPanel>
+        </DataTemplate>
+    </ContentDialog.Resources>
+
+    <Grid RowSpacing="16"
+          MinWidth="360">
+
+        <ProgressRing x:Name="LoadingIndicator"
+                      IsActive="True"
+                      Margin="32" />
+
+        <Grid x:Name="PickerContent"
+              ColumnSpacing="8"
+              RowSpacing="16">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <AutoSuggestBox x:Name="SearchBox"
+                            PlaceholderText="Search"
+                            QueryIcon="Find"
+                            TextChanged="SearchBox_TextChanged" />
+            <DropDownButton HorizontalAlignment="Right"
+                            Grid.Column="1"
+                            AutomationProperties.Name="Sort and filter"
+                            ToolTipService.ToolTip="Sort and filter">
+                <DropDownButton.Content>
+                    <FontIcon Glyph="&#xE8CB;"
+                              FontSize="16" />
+                </DropDownButton.Content>
+                <DropDownButton.Flyout>
+                    <MenuFlyout Placement="Bottom">
+                        <RadioMenuFlyoutItem x:Name="SortByNameRadio"
+                                             Text="Sort by name"
+                                             IsChecked="True"
+                                             Click="SortRadioMenuFlyoutItem_Click" />
+                        <RadioMenuFlyoutItem Text="Sort by installed date"
+                                             Click="SortRadioMenuFlyoutItem_Click" />
+                        <MenuFlyoutSeparator />
+                        <ToggleMenuFlyoutItem x:Name="GamesOnlyFilterToggle"
+                                              Text="Show games only"
+                                              IsChecked="True"
+                                              Click="ToggleMenuFlyoutItem_Click" />
+                    </MenuFlyout>
+                </DropDownButton.Flyout>
+            </DropDownButton>
+
+            <Grid Grid.ColumnSpan="2"
+                  Grid.Row="1">
+                <TextBlock x:Name="EmptyListText"
+                           Text="No packaged apps or games found"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           TextAlignment="Center"
+                           Margin="0,16" />
+                <ListView x:Name="PackagedAppsPickerList"
+                          ItemTemplate="{StaticResource AppListItemTemplate}"
+                          Margin="-28,0"
+                          Padding="12,0"
+                          SelectionChanged="PackagedAppsPickerList_SelectionChanged" />
+            </Grid>
+        </Grid>
+    </Grid>
+</ContentDialog>
