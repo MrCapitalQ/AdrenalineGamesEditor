@@ -3,6 +3,7 @@ using MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline.Models;
 using MrCapitalQ.AdrenalineGamesEditor.Core.FileSystem;
 using System.Collections.Immutable;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline;
 
@@ -10,6 +11,64 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
 {
     public event EventHandler? GamesDataChanged;
 
+    private const string DefaultNewGameEntry = """
+        {
+            "amdId": -1,
+            "appDisplayScalingSet": "FALSE",
+            "appHistogramCapture": "FALSE",
+            "arguments": "",
+            "athena_support": "FALSE",
+            "auto_enable_ps_state": "USEGLOBAL",
+            "averageFPS": -1,
+            "color_enabled": "FALSE",
+            "colors": [
+            ],
+            "commandline": "",
+            "exe_path": "",
+            "eyefinity_enabled": "FALSE",
+            "framegen_enabled": 0,
+            "freeSyncForceSet": "FALSE",
+            "guid": "",
+            "has_framegen_profile": "FALSE",
+            "has_upscaling_profile": "FALSE",
+            "hidden": "FALSE",
+            "image_info": "",
+            "install_location": "",
+            "installer_id": "",
+            "is_appforlink": "FALSE",
+            "is_favourite": "FALSE",
+            "last_played_mins": 0,
+            "lastlaunchtime": "",
+            "lastperformancereporttime": "",
+            "lnk_path": "",
+            "manual": "TRUE",
+            "origin_id": -1,
+            "overdrive": [
+            ],
+            "overdrive_enabled": "FALSE",
+            "percentile95_msec": -1,
+            "profileCustomized": "FALSE",
+            "profileEnabled": "TRUE",
+            "rayTracing": "FALSE",
+            "rendering_process": "",
+            "revertuserprofiletype": -1,
+            "smartshift_enabled": "FALSE",
+            "special_flags": "",
+            "steam_id": -1,
+            "title": "",
+            "total_played_mins": 0,
+            "uninstall_location": -1,
+            "uninstalled": "FALSE",
+            "uplay_id": -1,
+            "upscaling_enabled": "FALSE",
+            "upscaling_sharpness": 75,
+            "upscaling_target_resolution": "",
+            "upscaling_use_borderless": "FALSE",
+            "useEyefinity": "FALSE",
+            "userprofiletype": -1,
+            "week_played_mins": 0
+        }
+        """;
     private static readonly JsonSerializerOptions s_serializerOptions = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true
@@ -44,6 +103,36 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
     }
 
     public IReadOnlyCollection<AdrenalineGameInfo> GamesData { get; private set; } = [];
+
+    public async Task AddAsync(AdrenalineGameInfo gameInfo)
+    {
+        using var fileStream = new FileStream(_amdGameDbFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        var rootNode = await JsonNode.ParseAsync(fileStream)
+            ?? throw new InvalidOperationException("Failed to parse Adrenaline data file.");
+
+        var gamesNode = (rootNode["games"]?.AsArray())
+            ?? throw new InvalidOperationException("Failed to find games data in Adrenaline data file.");
+
+        var newGame = JsonNode.Parse(DefaultNewGameEntry)
+            ?? throw new InvalidOperationException("Failed to generate new game entry.");
+
+        var guid = gameInfo.Id;
+        if (guid == Guid.Empty)
+        {
+            var existingIds = gamesNode.Select(x => x?["guid"]).Where(x => x is not null).ToHashSet();
+            do guid = Guid.NewGuid();
+            while (existingIds.Contains(guid));
+        }
+
+        newGame["guid"] = $"{{{guid}}}";
+        newGame["title"] = gameInfo.DisplayName;
+        newGame["commandline"] = gameInfo.CommandLine;
+        newGame["exe_path"] = gameInfo.ExePath;
+        newGame["image_info"] = gameInfo.ImagePath;
+
+        gamesNode.Add(newGame);
+        await File.WriteAllTextAsync(_amdGameDbFilePath, rootNode.ToJsonString(s_serializerOptions));
+    }
 
     private async Task UpdateGamesDataAsync()
     {

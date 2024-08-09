@@ -32,8 +32,7 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <CommandBar Background="Transparent"
-                    IsOpen="False"
+        <CommandBar IsOpen="False"
                     DefaultLabelPosition="Right"
                     VerticalContentAlignment="Center">
             <CommandBar.Content>

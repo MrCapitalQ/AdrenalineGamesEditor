@@ -5,4 +5,6 @@ public interface IAdrenalineGamesDataService
     event EventHandler? GamesDataChanged;
 
     IReadOnlyCollection<AdrenalineGameInfo> GamesData { get; }
+
+    Task AddAsync(AdrenalineGameInfo gameInfo);
 }
