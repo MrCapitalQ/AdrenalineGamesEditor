@@ -10,6 +10,7 @@ namespace MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline;
 internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
 {
     public event EventHandler? GamesDataChanged;
+    public event EventHandler? IsRestartRequiredChanged;
 
     private const string DefaultNewGameEntry = """
         {
@@ -82,6 +83,7 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
     private readonly IFileWriter _fileWriter;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<AdrenalineGamesDataService> _logger;
+    private bool _isRestartRequired;
 
     public AdrenalineGamesDataService(IFileSystemWatcher fileSystemWatcher,
         IReadFileStreamCreator fileReadStreamCreator,
@@ -107,6 +109,15 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
 
     public IReadOnlyCollection<AdrenalineGameInfo> GamesData { get; private set; } = [];
 
+    public bool IsRestartRequired
+    {
+        get => _isRestartRequired; private set
+        {
+            _isRestartRequired = value;
+            OnIsRestartRequiredChanged();
+        }
+    }
+
     public async Task AddAsync(AdrenalineGameInfo gameInfo)
     {
         using var fileStream = _readFileStreamCreator.Open(_amdGameDbFilePath);
@@ -131,6 +142,15 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
 
         gamesNode.Add(newGame);
         await _fileWriter.WriteContentAsync(_amdGameDbFilePath, rootNode.ToJsonString(s_serializerOptions));
+        IsRestartRequired = true;
+        OnIsRestartRequiredChanged();
+    }
+
+    public async Task RestartAdrenalineAsync()
+    {
+        await Task.Delay(3000);
+        IsRestartRequired = false;
+        await Task.CompletedTask;
     }
 
     private async Task UpdateGamesDataAsync()
@@ -156,6 +176,12 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
     private void OnGamesDataChanged()
     {
         var raiseEvent = GamesDataChanged;
+        raiseEvent?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void OnIsRestartRequiredChanged()
+    {
+        var raiseEvent = IsRestartRequiredChanged;
         raiseEvent?.Invoke(this, EventArgs.Empty);
     }
 

@@ -29,8 +29,15 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition />
         </Grid.RowDefinitions>
+
+        <Grid.ChildrenTransitions>
+            <TransitionCollection>
+                <RepositionThemeTransition />
+            </TransitionCollection>
+        </Grid.ChildrenTransitions>
 
         <CommandBar IsOpen="False"
                     DefaultLabelPosition="Right"
@@ -45,9 +52,26 @@
                           Command="{x:Bind _viewModel.AddGameCommand}" />
         </CommandBar>
 
+        <InfoBar IsOpen="{x:Bind _viewModel.IsAdrenalineRestartRequired, Mode=OneWay}"
+                 IsClosable="False"
+                 Severity="Warning"
+                 Title="Changes were made but not applied."
+                 Message="Restart the Adrenaline app to apply your changes."
+                 Grid.Row="1">
+            <InfoBar.ActionButton>
+                <Button Content="Restart"
+                        HorizontalAlignment="Right"
+                        Command="{x:Bind _viewModel.RestartAdrenalineCommand}" />
+            </InfoBar.ActionButton>
+            <InfoBar.Content>
+                <ProgressBar IsIndeterminate="True"
+                             Visibility="{x:Bind _viewModel.IsAdrenalineRestarting, Mode=OneWay}" />
+            </InfoBar.Content>
+        </InfoBar>
+
         <ListView ItemsSource="{x:Bind _viewModel.GamesCollectionView}"
                   ItemTemplate="{StaticResource GameListItemTemplate}"
                   SelectionMode="None"
-                  Grid.Row="1" />
+                  Grid.Row="2" />
     </Grid>
 </Page>
