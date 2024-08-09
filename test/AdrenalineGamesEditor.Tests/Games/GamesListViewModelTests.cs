@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.WinUI.Collections;
+using Microsoft.Extensions.Time.Testing;
 using MrCapitalQ.AdrenalineGamesEditor.Apps;
 using MrCapitalQ.AdrenalineGamesEditor.Core;
 using MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline;
@@ -17,6 +18,7 @@ public class GamesListViewModelTests
     private readonly IAdrenalineGamesDataService _adrenalineGamesDataService = Substitute.For<IAdrenalineGamesDataService>();
     private readonly IDispatcherQueue _dispatcherQueue = Substitute.For<IDispatcherQueue>();
     private readonly IMessenger _messenger = Substitute.For<IMessenger>();
+    private readonly FakeTimeProvider _timeProvider = new();
 
     public GamesListViewModelTests()
     {
@@ -89,6 +91,45 @@ public class GamesListViewModelTests
 
         _messenger.Received(1).Send(Arg.Any<PickPackagedAppRequestMessage>(), Arg.Any<TestMessengerToken>());
         _messenger.Received(1).Send(Arg.Is<NavigateMessage>(x => (x.Parameter as string) == selectedGame.AppUserModelId), Arg.Any<TestMessengerToken>());
+    }
+
+    [Fact]
+    public async Task RestartAdrenalineAsync_UpdatesIsAdrenalineRestarting()
+    {
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger);
+        _adrenalineGamesDataService.RestartAdrenalineAsync().Returns(Task.Delay(TimeSpan.FromSeconds(1), _timeProvider).ContinueWith(x => true));
+
+        _ = viewModel.RestartAdrenalineCommand.ExecuteAsync(null);
+
+        Assert.True(viewModel.IsAdrenalineRestarting);
+
+        _timeProvider.Advance(TimeSpan.FromSeconds(1));
+        await Task.Delay(1);
+
+        Assert.False(viewModel.IsAdrenalineRestarting);
+        await _adrenalineGamesDataService.Received(1).RestartAdrenalineAsync();
+    }
+
+    [Fact]
+    public async Task RestartAdrenalineAsync_RestartFails_SetsDidAdrenalineRestartFailToTrue()
+    {
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger);
+        _adrenalineGamesDataService.RestartAdrenalineAsync().Returns(false);
+
+        await viewModel.RestartAdrenalineCommand.ExecuteAsync(null);
+
+        Assert.True(viewModel.DidAdrenalineRestartFail);
+    }
+
+    [Fact]
+    public void DataService_IsRestartRequiredChanged_UpdatesIsAdrenalineRestarting()
+    {
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger);
+        _adrenalineGamesDataService.IsRestartRequired.Returns(true);
+
+        _adrenalineGamesDataService.IsRestartRequiredChanged += Raise.Event();
+
+        Assert.True(viewModel.IsAdrenalineRestartRequired);
     }
 
     private static AdrenalineGameInfo CreateGameInfo((Guid Id, string DisplayName) data) => new(data.Id,
