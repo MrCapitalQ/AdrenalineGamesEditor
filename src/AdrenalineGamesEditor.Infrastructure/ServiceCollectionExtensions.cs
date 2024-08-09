@@ -12,6 +12,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddFileSystem(this IServiceCollection services)
     {
         services.TryAddTransient<IReadFileStreamCreator, ReadFileStreamCreator>();
+        services.TryAddTransient<IFileWriter, FileWriter>();
         services.TryAddTransient<IFileSystemWatcher, FileSystemWatcherAdapter>();
         return services;
     }

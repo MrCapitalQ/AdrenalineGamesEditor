@@ -79,11 +79,13 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
     private readonly string _amdGameDbFilePath;
     private readonly IFileSystemWatcher _fileSystemWatcher;
     private readonly IReadFileStreamCreator _readFileStreamCreator;
+    private readonly IFileWriter _fileWriter;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<AdrenalineGamesDataService> _logger;
 
     public AdrenalineGamesDataService(IFileSystemWatcher fileSystemWatcher,
         IReadFileStreamCreator fileReadStreamCreator,
+        IFileWriter fileWriter,
         TimeProvider timeProvider,
         ILogger<AdrenalineGamesDataService> logger)
     {
@@ -91,6 +93,7 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
 
         _fileSystemWatcher = fileSystemWatcher;
         _readFileStreamCreator = fileReadStreamCreator;
+        _fileWriter = fileWriter;
         _timeProvider = timeProvider;
         _logger = logger;
 
@@ -106,7 +109,7 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
 
     public async Task AddAsync(AdrenalineGameInfo gameInfo)
     {
-        using var fileStream = new FileStream(_amdGameDbFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using var fileStream = _readFileStreamCreator.Open(_amdGameDbFilePath);
         var rootNode = await JsonNode.ParseAsync(fileStream)
             ?? throw new InvalidOperationException("Failed to parse Adrenaline data file.");
 
@@ -117,12 +120,8 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
             ?? throw new InvalidOperationException("Failed to generate new game entry.");
 
         var guid = gameInfo.Id;
-        if (guid == Guid.Empty)
-        {
-            var existingIds = gamesNode.Select(x => x?["guid"]).Where(x => x is not null).ToHashSet();
-            do guid = Guid.NewGuid();
-            while (existingIds.Contains(guid));
-        }
+        var existingIds = gamesNode.Select(x => x?["guid"]).Where(x => x is not null).ToHashSet();
+        while (guid == Guid.Empty && existingIds.Contains(guid = Guid.NewGuid())) { }
 
         newGame["guid"] = $"{{{guid}}}";
         newGame["title"] = gameInfo.DisplayName;
@@ -131,7 +130,7 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
         newGame["image_info"] = gameInfo.ImagePath;
 
         gamesNode.Add(newGame);
-        await File.WriteAllTextAsync(_amdGameDbFilePath, rootNode.ToJsonString(s_serializerOptions));
+        await _fileWriter.WriteContentAsync(_amdGameDbFilePath, rootNode.ToJsonString(s_serializerOptions));
     }
 
     private async Task UpdateGamesDataAsync()
