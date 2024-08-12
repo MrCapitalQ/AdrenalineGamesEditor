@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.ApplicationModel.Resources;
 using MrCapitalQ.AdrenalineGamesEditor.Core;
 using MrCapitalQ.AdrenalineGamesEditor.Core.Apps;
+using MrCapitalQ.AdrenalineGamesEditor.Infrastructure.Apps;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
@@ -24,8 +25,8 @@ public sealed class PackagedAppIcon : Control
           typeof(PackagedAppIcon),
           new PropertyMetadata(null));
 
-    private ResourceMap? _resourceMap;
-    private ResourceContext? _resourceContext;
+    private readonly QualifiedFileResolver _qualifiedFileResolver = new();
+    private readonly Dictionary<string, string> _qualifiers = [];
 
     public PackagedAppIcon()
     {
@@ -40,7 +41,6 @@ public sealed class PackagedAppIcon : Control
         set
         {
             SetValue(PackageProperty, value);
-            InitResources();
             UpdateIconPath();
         }
     }
@@ -51,23 +51,6 @@ public sealed class PackagedAppIcon : Control
         private set => SetValue(IconProperty, value);
     }
 
-    private void InitResources()
-    {
-        _resourceContext = null;
-        _resourceMap = null;
-
-        if (Package is null)
-            return;
-
-        var priPath = Path.Combine(Package.InstalledPath, "resources.pri");
-        if (!Path.Exists(priPath))
-            return;
-
-        var resourceManager = new ResourceManager(priPath);
-        _resourceMap = resourceManager.MainResourceMap.TryGetSubtree("Files");
-        _resourceContext = resourceManager.CreateResourceContext();
-    }
-
     private void UpdateIconPath()
     {
         if (Package is null || string.IsNullOrEmpty(Package.Square44x44Logo))
@@ -76,37 +59,18 @@ public sealed class PackagedAppIcon : Control
             return;
         }
 
-        var nonQualifiedIconUri = new Uri(Path.Combine(Package.InstalledPath, Package.Square44x44Logo));
+        var scale = (XamlRoot?.RasterizationScale ?? 1) * 100;
+        var isLightMode = RequestedTheme == ElementTheme.Light
+            || RequestedTheme == ElementTheme.Default && App.Current.RequestedTheme == ApplicationTheme.Light;
+        var targetSize = Math.Min(ActualWidth, ActualHeight);
 
-        var context = GetResourceContext();
-        if (_resourceMap is null || context is null)
-        {
-            Icon = new BitmapImage(nonQualifiedIconUri);
-            return;
-        }
+        _qualifiers[KnownResourceQualifierName.Scale] = scale.ToString(CultureInfo.InvariantCulture);
+        _qualifiers[KnownResourceQualifierName.Theme] = isLightMode ? "light" : "dark";
+        _qualifiers[KnownResourceQualifierName.TargetSize] = targetSize.ToString(CultureInfo.InvariantCulture);
+        _qualifiers["AlternateForm"] = isLightMode ? "lightunplated" : "unplated";
 
-        var path = _resourceMap.GetValue(Package.Square44x44Logo, context).ValueAsString;
-
-        var uri = !string.IsNullOrEmpty(path) ? new Uri(path) : nonQualifiedIconUri;
-        Icon = new BitmapImage(uri);
-    }
-
-    private ResourceContext? GetResourceContext()
-    {
-        if (_resourceContext is not null)
-        {
-            var scale = (XamlRoot?.RasterizationScale ?? 1) * 100;
-            var isLightMode = RequestedTheme == ElementTheme.Light
-                || RequestedTheme == ElementTheme.Default && App.Current.RequestedTheme == ApplicationTheme.Light;
-            var targetSize = Math.Min(ActualWidth, ActualHeight);
-
-            _resourceContext.QualifierValues[KnownResourceQualifierName.Scale] = scale.ToString(CultureInfo.InvariantCulture);
-            _resourceContext.QualifierValues[KnownResourceQualifierName.Theme] = isLightMode ? "light" : "dark";
-            _resourceContext.QualifierValues["AlternateForm"] = isLightMode ? "lightunplated" : "unplated";
-            _resourceContext.QualifierValues[KnownResourceQualifierName.TargetSize] = targetSize.ToString(CultureInfo.InvariantCulture);
-        }
-
-        return _resourceContext;
+        var path = _qualifiedFileResolver.GetPath(Package.InstalledPath, Package.Square44x44Logo, _qualifiers);
+        Icon = new BitmapImage(new Uri(path));
     }
 
     private void PackagedAppIcon_ActualThemeChanged(FrameworkElement sender, object args) => UpdateIconPath();

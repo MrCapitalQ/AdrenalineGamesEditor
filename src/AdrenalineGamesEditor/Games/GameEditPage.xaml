@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page x:Class="MrCapitalQ.AdrenalineGamesEditor.Games.GameEditPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:MrCapitalQ.AdrenalineGamesEditor.Games"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d">
+
+    <StackPanel Margin="16"
+                Spacing="16">
+        <TextBlock Text="New Game"
+                   Style="{StaticResource TitleTextBlockStyle}" />
+        <Image Width="150">
+            <Image.Source>
+                <BitmapImage UriSource="{x:Bind _viewModel.ImagePath, Mode=OneWay}" />
+            </Image.Source>
+        </Image>
+        <TextBox Text="{x:Bind _viewModel.DisplayName, Mode=TwoWay}"
+                 Header="Display name" />
+        <TextBox Text="{x:Bind _viewModel.Command, Mode=TwoWay}"
+                 Header="Command" />
+        <StackPanel Spacing="8">
+            <ComboBox ItemsSource="{x:Bind _viewModel.ExePathOptions, Mode=OneWay}"
+                      SelectedItem="{x:Bind _viewModel.SelectedExePathOption, Mode=TwoWay}"
+                      DisplayMemberPath="Display"
+                      Header="Executable path"
+                      HorizontalAlignment="Stretch" />
+            <TextBlock Text="{x:Bind _viewModel.ExePath, Mode=OneWay}"
+                       Style="{StaticResource CaptionTextBlockStyle}"
+                       Foreground="{StaticResource TextFillColorSecondaryBrush}" />
+        </StackPanel>
+    </StackPanel>
+</Page>
