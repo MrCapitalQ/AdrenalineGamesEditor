@@ -8,8 +8,9 @@ namespace MrCapitalQ.AdrenalineGamesEditor.Core;
 [ExcludeFromCodeCoverage]
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddAdrenalineGamesData(this IServiceCollection services)
+    public static IServiceCollection AddAdrenalineGamesDataCore(this IServiceCollection services)
     {
+        services.TryAddSingleton<GuidGenerator>();
         services.TryAddSingleton<IAdrenalineGamesDataService, AdrenalineGamesDataService>();
         return services;
     }

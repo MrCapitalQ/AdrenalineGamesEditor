@@ -29,11 +29,19 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <CommandBar Background="Transparent"
-                    IsOpen="False"
+        <Grid.ChildrenTransitions>
+            <TransitionCollection>
+                <RepositionThemeTransition />
+            </TransitionCollection>
+        </Grid.ChildrenTransitions>
+
+        <CommandBar IsOpen="False"
                     DefaultLabelPosition="Right"
                     VerticalContentAlignment="Center">
             <CommandBar.Content>
@@ -41,14 +49,45 @@
                            Style="{StaticResource TitleTextBlockStyle}"
                            Margin="12,0" />
             </CommandBar.Content>
+            <CommandBar.SecondaryCommands>
+                <AppBarButton Label="Restart Adrenaline"
+                              Command="{x:Bind _viewModel.RestartAdrenalineCommand}">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE777;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+            </CommandBar.SecondaryCommands>
             <AppBarButton Icon="Add"
                           Label="Add"
                           Command="{x:Bind _viewModel.AddGameCommand}" />
         </CommandBar>
 
+        <ProgressBar IsIndeterminate="True"
+                     Visibility="{x:Bind _viewModel.IsAdrenalineRestarting, Mode=OneWay}"
+                     Grid.Row="1" />
+
+        <InfoBar IsOpen="{x:Bind _viewModel.DidAdrenalineRestartFail, Mode=TwoWay}"
+                 Severity="Error"
+                 Title="Arenaline restart failed."
+                 Message="Manually stop and start the Adrenaline app or restart your PC to apply your changes."
+                 Grid.Row="2" />
+
+        <InfoBar IsOpen="{x:Bind _viewModel.IsAdrenalineRestartRequired, Mode=OneWay}"
+                 IsClosable="False"
+                 Severity="Warning"
+                 Title="Changes were made but not applied."
+                 Message="Restart the Adrenaline app to apply your changes."
+                 Grid.Row="3">
+            <InfoBar.ActionButton>
+                <Button Content="Restart"
+                        HorizontalAlignment="Right"
+                        Command="{x:Bind _viewModel.RestartAdrenalineCommand}" />
+            </InfoBar.ActionButton>
+        </InfoBar>
+
         <ListView ItemsSource="{x:Bind _viewModel.GamesCollectionView}"
                   ItemTemplate="{StaticResource GameListItemTemplate}"
                   SelectionMode="None"
-                  Grid.Row="1" />
+                  Grid.Row="4" />
     </Grid>
 </Page>

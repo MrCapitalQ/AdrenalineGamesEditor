@@ -26,6 +26,7 @@ public sealed partial class MainWindow : WindowEx
         RootFrame.Navigate(typeof(GamesListPage));
 
         messenger.Register<MainWindow, NavigateMessage>(this, (r, m) => r.RootFrame.Navigate(m.SourcePageType, m.Parameter));
+        messenger.Register<MainWindow, NavigateBackMessage>(this, (r, m) => r.GoBack());
     }
 
     private void GoBack()
