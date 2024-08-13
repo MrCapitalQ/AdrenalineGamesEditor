@@ -178,7 +178,7 @@ public class AdrenalineGamesDataServiceTests
     }
 
     [Fact]
-    public async Task AddAsync_SuccessfulDbFileRead_WritesFileWithNewGame()
+    public async Task SaveAsync_GameWithDefaultId_CreatesNewGame()
     {
         // Arrange
         _guidGenerator.NewGuid().Returns(Guid.Parse("9721c8ae-b162-4e64-bbc6-eac6d933b711"));
@@ -252,7 +252,7 @@ public class AdrenalineGamesDataServiceTests
             """;
 
         // Act
-        await _service.AddAsync(gameInfo);
+        await _service.SaveAsync(gameInfo);
 
         // Assert
         Assert.True(_service.IsRestartRequired);
@@ -261,7 +261,233 @@ public class AdrenalineGamesDataServiceTests
     }
 
     [Fact]
-    public async Task AddAsync_CollisionWhenGeneratingIds_UsesFirstUnusedId()
+    public async Task SaveAsync_GameWithNonExistentId_CreatesNewGame()
+    {
+        // Arrange
+        var eventRaised = false;
+        _service.IsRestartRequiredChanged += (_, _) => eventRaised = true;
+        var gameInfo = new AdrenalineGameInfo(Guid.Parse("9721c8ae-b162-4e64-bbc6-eac6d933b711"),
+            "Test Display Name",
+            @"C:\Path\Image.png",
+            "Test-Command",
+            @"C:\Path\Executabe.exe",
+            true);
+        var expected = """
+            {
+              "games": [
+                {
+                  "amdId": -1,
+                  "appDisplayScalingSet": "FALSE",
+                  "appHistogramCapture": "FALSE",
+                  "arguments": "",
+                  "athena_support": "FALSE",
+                  "auto_enable_ps_state": "USEGLOBAL",
+                  "averageFPS": -1,
+                  "color_enabled": "FALSE",
+                  "colors": [],
+                  "commandline": "Test-Command",
+                  "exe_path": "C:\\Path\\Executabe.exe",
+                  "eyefinity_enabled": "FALSE",
+                  "framegen_enabled": 0,
+                  "freeSyncForceSet": "FALSE",
+                  "guid": "{9721c8ae-b162-4e64-bbc6-eac6d933b711}",
+                  "has_framegen_profile": "FALSE",
+                  "has_upscaling_profile": "FALSE",
+                  "hidden": "FALSE",
+                  "image_info": "C:\\Path\\Image.png",
+                  "install_location": "",
+                  "installer_id": "",
+                  "is_appforlink": "FALSE",
+                  "is_favourite": "FALSE",
+                  "last_played_mins": 0,
+                  "lastlaunchtime": "",
+                  "lastperformancereporttime": "",
+                  "lnk_path": "",
+                  "manual": "TRUE",
+                  "origin_id": -1,
+                  "overdrive": [],
+                  "overdrive_enabled": "FALSE",
+                  "percentile95_msec": -1,
+                  "profileCustomized": "FALSE",
+                  "profileEnabled": "TRUE",
+                  "rayTracing": "FALSE",
+                  "rendering_process": "",
+                  "revertuserprofiletype": -1,
+                  "smartshift_enabled": "FALSE",
+                  "special_flags": "",
+                  "steam_id": -1,
+                  "title": "Test Display Name",
+                  "total_played_mins": 0,
+                  "uninstall_location": -1,
+                  "uninstalled": "FALSE",
+                  "uplay_id": -1,
+                  "upscaling_enabled": "FALSE",
+                  "upscaling_sharpness": 75,
+                  "upscaling_target_resolution": "",
+                  "upscaling_use_borderless": "FALSE",
+                  "useEyefinity": "FALSE",
+                  "userprofiletype": -1,
+                  "week_played_mins": 0
+                }
+              ]
+            }
+            """;
+
+        // Act
+        await _service.SaveAsync(gameInfo);
+
+        // Assert
+        Assert.True(_service.IsRestartRequired);
+        Assert.True(eventRaised);
+        await _fileWriter.Received(1).WriteContentAsync(_amdGameDbFilePath, expected);
+    }
+
+    [Fact]
+    public async Task SaveAsync_GameWithExistingId_UpdatesGame()
+    {
+        // Arrange
+        var dbFile = """
+            {
+              "games": [
+                {
+                  "amdId": -1,
+                  "appDisplayScalingSet": "FALSE",
+                  "appHistogramCapture": "FALSE",
+                  "arguments": "",
+                  "athena_support": "FALSE",
+                  "auto_enable_ps_state": "USEGLOBAL",
+                  "averageFPS": -1,
+                  "color_enabled": "FALSE",
+                  "colors": [],
+                  "commandline": "Test-Command",
+                  "exe_path": "C:\\Path\\Executabe.exe",
+                  "eyefinity_enabled": "FALSE",
+                  "framegen_enabled": 0,
+                  "freeSyncForceSet": "FALSE",
+                  "guid": "{9721c8ae-b162-4e64-bbc6-eac6d933b711}",
+                  "has_framegen_profile": "FALSE",
+                  "has_upscaling_profile": "FALSE",
+                  "hidden": "FALSE",
+                  "image_info": "C:\\Path\\Image.png",
+                  "install_location": "",
+                  "installer_id": "",
+                  "is_appforlink": "FALSE",
+                  "is_favourite": "FALSE",
+                  "last_played_mins": 0,
+                  "lastlaunchtime": "",
+                  "lastperformancereporttime": "",
+                  "lnk_path": "",
+                  "manual": "TRUE",
+                  "origin_id": -1,
+                  "overdrive": [],
+                  "overdrive_enabled": "FALSE",
+                  "percentile95_msec": -1,
+                  "profileCustomized": "FALSE",
+                  "profileEnabled": "TRUE",
+                  "rayTracing": "FALSE",
+                  "rendering_process": "",
+                  "revertuserprofiletype": -1,
+                  "smartshift_enabled": "FALSE",
+                  "special_flags": "",
+                  "steam_id": -1,
+                  "title": "Test Display Name",
+                  "total_played_mins": 0,
+                  "uninstall_location": -1,
+                  "uninstalled": "FALSE",
+                  "uplay_id": -1,
+                  "upscaling_enabled": "FALSE",
+                  "upscaling_sharpness": 75,
+                  "upscaling_target_resolution": "",
+                  "upscaling_use_borderless": "FALSE",
+                  "useEyefinity": "FALSE",
+                  "userprofiletype": -1,
+                  "week_played_mins": 0
+                }
+              ]
+            }
+            """;
+        _readFileStreamCreator.Open(Arg.Any<string>())
+            .Returns(new MemoryStream(Encoding.UTF8.GetBytes(dbFile)));
+        var eventRaised = false;
+        _service.IsRestartRequiredChanged += (_, _) => eventRaised = true;
+        var gameInfo = new AdrenalineGameInfo(Guid.Parse("9721c8ae-b162-4e64-bbc6-eac6d933b711"),
+            "Updated Test Display Name",
+            @"C:\Path\UpdatedImage.png",
+            "Update-Test-Command",
+            @"C:\Path\Update-Executabe.exe",
+            true);
+        var expected = """
+            {
+              "games": [
+                {
+                  "amdId": -1,
+                  "appDisplayScalingSet": "FALSE",
+                  "appHistogramCapture": "FALSE",
+                  "arguments": "",
+                  "athena_support": "FALSE",
+                  "auto_enable_ps_state": "USEGLOBAL",
+                  "averageFPS": -1,
+                  "color_enabled": "FALSE",
+                  "colors": [],
+                  "commandline": "Update-Test-Command",
+                  "exe_path": "C:\\Path\\Update-Executabe.exe",
+                  "eyefinity_enabled": "FALSE",
+                  "framegen_enabled": 0,
+                  "freeSyncForceSet": "FALSE",
+                  "guid": "{9721c8ae-b162-4e64-bbc6-eac6d933b711}",
+                  "has_framegen_profile": "FALSE",
+                  "has_upscaling_profile": "FALSE",
+                  "hidden": "FALSE",
+                  "image_info": "C:\\Path\\UpdatedImage.png",
+                  "install_location": "",
+                  "installer_id": "",
+                  "is_appforlink": "FALSE",
+                  "is_favourite": "FALSE",
+                  "last_played_mins": 0,
+                  "lastlaunchtime": "",
+                  "lastperformancereporttime": "",
+                  "lnk_path": "",
+                  "manual": "TRUE",
+                  "origin_id": -1,
+                  "overdrive": [],
+                  "overdrive_enabled": "FALSE",
+                  "percentile95_msec": -1,
+                  "profileCustomized": "FALSE",
+                  "profileEnabled": "TRUE",
+                  "rayTracing": "FALSE",
+                  "rendering_process": "",
+                  "revertuserprofiletype": -1,
+                  "smartshift_enabled": "FALSE",
+                  "special_flags": "",
+                  "steam_id": -1,
+                  "title": "Updated Test Display Name",
+                  "total_played_mins": 0,
+                  "uninstall_location": -1,
+                  "uninstalled": "FALSE",
+                  "uplay_id": -1,
+                  "upscaling_enabled": "FALSE",
+                  "upscaling_sharpness": 75,
+                  "upscaling_target_resolution": "",
+                  "upscaling_use_borderless": "FALSE",
+                  "useEyefinity": "FALSE",
+                  "userprofiletype": -1,
+                  "week_played_mins": 0
+                }
+              ]
+            }
+            """;
+
+        // Act
+        await _service.SaveAsync(gameInfo);
+
+        // Assert
+        Assert.True(_service.IsRestartRequired);
+        Assert.True(eventRaised);
+        await _fileWriter.Received(1).WriteContentAsync(_amdGameDbFilePath, expected);
+    }
+
+    [Fact]
+    public async Task SaveAsync_CollisionWhenGeneratingIds_UsesFirstUnusedId()
     {
         // Arrange
         var takenGuid = Guid.Parse("8a90fc4c-72fc-4ec2-9f2c-f85f2fde1fe1");
@@ -356,14 +582,14 @@ public class AdrenalineGamesDataServiceTests
             """;
 
         // Act
-        await _service.AddAsync(gameInfo);
+        await _service.SaveAsync(gameInfo);
 
         // Assert
         await _fileWriter.Received(1).WriteContentAsync(_amdGameDbFilePath, expected);
     }
 
     [Fact]
-    public async Task AddAsync_NullLiteralDbFileContent_ThrowsException()
+    public async Task SaveAsync_NullLiteralDbFileContent_ThrowsException()
     {
         _readFileStreamCreator.Open(_amdGameDbFilePath).Returns(new MemoryStream(Encoding.UTF8.GetBytes("null")));
         var gameInfo = new AdrenalineGameInfo(Guid.Empty,
@@ -373,14 +599,14 @@ public class AdrenalineGamesDataServiceTests
             @"C:\Path\Executabe.exe",
             true);
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.AddAsync(gameInfo));
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.SaveAsync(gameInfo));
 
         Assert.Equal("Failed to parse Adrenaline data file.", ex.Message);
         await _fileWriter.Received(0).WriteContentAsync(Arg.Any<string>(), Arg.Any<string>());
     }
 
     [Fact]
-    public async Task AddAsync_DbFileMissingGamesProperty_ThrowsException()
+    public async Task SaveAsync_DbFileMissingGamesProperty_ThrowsException()
     {
         _readFileStreamCreator.Open(_amdGameDbFilePath).Returns(new MemoryStream(Encoding.UTF8.GetBytes("{}")));
         var gameInfo = new AdrenalineGameInfo(Guid.Empty,
@@ -390,7 +616,7 @@ public class AdrenalineGamesDataServiceTests
             @"C:\Path\Executabe.exe",
             true);
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.AddAsync(gameInfo));
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.SaveAsync(gameInfo));
 
         Assert.Equal("Failed to find games data in Adrenaline data file.", ex.Message);
         await _fileWriter.Received(0).WriteContentAsync(Arg.Any<string>(), Arg.Any<string>());
@@ -407,7 +633,7 @@ public class AdrenalineGamesDataServiceTests
             "Test-Command",
             @"C:\Path\Executabe.exe",
             true);
-        await _service.AddAsync(gameInfo);
+        await _service.SaveAsync(gameInfo);
 
         var actual = await _service.RestartAdrenalineAsync();
 

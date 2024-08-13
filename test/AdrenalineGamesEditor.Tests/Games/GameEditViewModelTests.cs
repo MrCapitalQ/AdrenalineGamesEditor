@@ -41,6 +41,11 @@ public class GameEditViewModelTests
             true,
             @"Game.exe",
             ["gamelauncherhelper.exe", @"Game.exe"]);
+        var expectedExePath = Path.Combine(appInfo.InstalledPath, appInfo.ExecutablePath!);
+        var expectedImagePath = Path.Combine(appInfo.InstalledPath, appInfo.Square150x150Logo!);
+        var expectedOptions = appInfo.ExecutablePaths
+            .Select(x => new ComboBoxOption<string>(Path.Combine(appInfo.InstalledPath, x), $@"\{x}"))
+            .Concat([GameEditViewModel.CustomExePathOption]);
         _packagedAppsService.GetInfoAsync(appInfo.AppUserModelId).Returns(appInfo);
         _qualifiedFileResolver.GetPath(appInfo.InstalledPath, appInfo.Square150x150Logo!)
             .Returns(Path.Combine(appInfo.InstalledPath, appInfo.Square150x150Logo!));
@@ -51,15 +56,19 @@ public class GameEditViewModelTests
             _adrenalineGamesDataService,
             _messenger,
             _logger,
-            appInfo.AppUserModelId);
+            appUserModelId: appInfo.AppUserModelId);
 
         // Assert
+        Assert.Equal("New Game", viewModel.Title);
         Assert.Equal(Guid.Empty, viewModel.Id);
         Assert.Equal(appInfo.DisplayName, viewModel.DisplayName);
         Assert.Equal(appInfo.AppUserModelId, viewModel.Command);
-        Assert.Equal(new Uri(Path.Combine(appInfo.InstalledPath, appInfo.Square150x150Logo!)), viewModel.ImagePath);
-        Assert.Equal(Path.Combine(appInfo.InstalledPath, appInfo.ExecutablePath!), viewModel.ExePath);
-        Assert.Equal(appInfo.ExecutablePaths.Select(x => new ComboBoxOption<string>(Path.Combine(appInfo.InstalledPath, x), $@"\{x}")), viewModel.ExePathOptions);
+        Assert.Equal(expectedImagePath, viewModel.ImagePath);
+        Assert.Equal(expectedExePath, viewModel.ExePath);
+        Assert.Equal(expectedOptions, viewModel.ExePathOptions);
+        Assert.Equal(viewModel.ExePathOptions.Single(x => x.Value == expectedExePath), viewModel.SelectedExePathOption);
+        Assert.Equal(expectedImagePath, viewModel.GameImage.ImagePath);
+        Assert.Equal(expectedExePath, viewModel.GameImage.ExePath);
     }
 
     [Fact]
@@ -75,6 +84,10 @@ public class GameEditViewModelTests
             true,
             null,
             []);
+        var expectedImagePath = Path.Combine(appInfo.InstalledPath, appInfo.Square150x150Logo!);
+        var expectedOptions = appInfo.ExecutablePaths
+            .Select(x => new ComboBoxOption<string>(Path.Combine(appInfo.InstalledPath, x), $@"\{x}"))
+            .Concat([GameEditViewModel.CustomExePathOption]);
         _packagedAppsService.GetInfoAsync(appInfo.AppUserModelId).Returns(appInfo);
         _qualifiedFileResolver.GetPath(appInfo.InstalledPath, appInfo.Square150x150Logo!)
             .Returns(Path.Combine(appInfo.InstalledPath, appInfo.Square150x150Logo!));
@@ -85,15 +98,19 @@ public class GameEditViewModelTests
             _adrenalineGamesDataService,
             _messenger,
             _logger,
-            appInfo.AppUserModelId);
+            appUserModelId: appInfo.AppUserModelId);
 
         // Assert
+        Assert.Equal("New Game", viewModel.Title);
         Assert.Equal(Guid.Empty, viewModel.Id);
         Assert.Equal(appInfo.DisplayName, viewModel.DisplayName);
         Assert.Equal(appInfo.AppUserModelId, viewModel.Command);
-        Assert.Equal(new Uri(Path.Combine(appInfo.InstalledPath, appInfo.Square150x150Logo!)), viewModel.ImagePath);
+        Assert.Equal(expectedImagePath, viewModel.ImagePath);
         Assert.Null(viewModel.ExePath);
-        Assert.Equal(appInfo.ExecutablePaths.Select(x => new ComboBoxOption<string>(Path.Combine(appInfo.InstalledPath, x), $@"\{x}")), viewModel.ExePathOptions);
+        Assert.Equal(expectedOptions, viewModel.ExePathOptions);
+        Assert.Equal(GameEditViewModel.CustomExePathOption, viewModel.SelectedExePathOption);
+        Assert.Equal(expectedImagePath, viewModel.GameImage.ImagePath);
+        Assert.Null(viewModel.GameImage.ExePath);
     }
 
     [Fact]
@@ -104,14 +121,120 @@ public class GameEditViewModelTests
             _adrenalineGamesDataService,
             _messenger,
             _logger,
-            "Package!App");
+            appUserModelId: "Package!App");
 
+        Assert.Equal("New Game", viewModel.Title);
         Assert.Equal(Guid.Empty, viewModel.Id);
         Assert.Null(viewModel.DisplayName);
         Assert.Null(viewModel.Command);
         Assert.Null(viewModel.ImagePath);
         Assert.Null(viewModel.ExePath);
         Assert.Empty(viewModel.ExePathOptions);
+        Assert.Null(viewModel.SelectedExePathOption);
+        Assert.Null(viewModel.GameImage.ImagePath);
+        Assert.Null(viewModel.GameImage.ExePath);
+    }
+
+    [Fact]
+    public void Ctor_ForAdrenalineGameId_InitializesForAdrenalineGameId()
+    {
+        // Arrange
+        var expectedOptions = new List<ComboBoxOption<string>> { GameEditViewModel.CustomExePathOption };
+        var gameInfo = new AdrenalineGameInfo(Guid.Parse("9721c8ae-b162-4e64-bbc6-eac6d933b711"),
+            "Test Display Name",
+            @"C:\Path\Image.png",
+            "Test-Command",
+            @"C:\Path\Executable.exe",
+            true);
+        _adrenalineGamesDataService.GamesData.Returns([gameInfo]);
+
+        // Act
+        var viewModel = new GameEditViewModel(_packagedAppsService,
+            _qualifiedFileResolver,
+            _adrenalineGamesDataService,
+            _messenger,
+            _logger,
+            adrenalineGameId: gameInfo.Id);
+
+        // Assert
+        Assert.Equal("Edit Game", viewModel.Title);
+        Assert.Equal(gameInfo.Id, viewModel.Id);
+        Assert.Equal(gameInfo.DisplayName, viewModel.DisplayName);
+        Assert.Equal(gameInfo.CommandLine, viewModel.Command);
+        Assert.Equal(gameInfo.ImagePath, viewModel.ImagePath);
+        Assert.Equal(gameInfo.ExePath, viewModel.ExePath);
+        Assert.Equal(expectedOptions, viewModel.ExePathOptions);
+        Assert.Equal(GameEditViewModel.CustomExePathOption, viewModel.SelectedExePathOption);
+        Assert.Equal(gameInfo.ImagePath, viewModel.GameImage.ImagePath);
+        Assert.Equal(gameInfo.ExePath, viewModel.GameImage.ExePath);
+    }
+
+    [Fact]
+    public void Ctor_ForAdrenalineGameIdAndIsPackagedApp_InitializesWithPackageInfo()
+    {
+        // Arrange
+        var appInfo = new PackagedAppInfo("Test Game",
+            "Package!App",
+            @"C:\InstalledLocation",
+            DateTimeOffset.MinValue,
+            null,
+            @"Assets\Logo.png",
+            true,
+            @"Game.exe",
+            ["gamelauncherhelper.exe", @"Game.exe"]);
+        var expectedOptions = appInfo.ExecutablePaths
+            .Select(x => new ComboBoxOption<string>(Path.Combine(appInfo.InstalledPath, x), $@"\{x}"))
+            .Concat([GameEditViewModel.CustomExePathOption]);
+        _packagedAppsService.GetInfoAsync(appInfo.AppUserModelId).Returns(appInfo);
+        var gameInfo = new AdrenalineGameInfo(Guid.Parse("9721c8ae-b162-4e64-bbc6-eac6d933b711"),
+            "Test Display Name",
+            @"C:\Path\Image.png",
+            appInfo.AppUserModelId,
+            @"C:\InstalledLocation\Game.exe",
+            true);
+        _adrenalineGamesDataService.GamesData.Returns([gameInfo]);
+
+        // Act
+        var viewModel = new GameEditViewModel(_packagedAppsService,
+            _qualifiedFileResolver,
+            _adrenalineGamesDataService,
+            _messenger,
+            _logger,
+            adrenalineGameId: gameInfo.Id);
+
+        // Assert
+        Assert.Equal("Edit Game", viewModel.Title);
+        Assert.Equal(gameInfo.Id, viewModel.Id);
+        Assert.Equal(gameInfo.DisplayName, viewModel.DisplayName);
+        Assert.Equal(gameInfo.CommandLine, viewModel.Command);
+        Assert.Equal(gameInfo.ImagePath, viewModel.ImagePath);
+        Assert.Equal(gameInfo.ExePath, viewModel.ExePath);
+        Assert.Equal(expectedOptions, viewModel.ExePathOptions);
+        Assert.Equal(viewModel.ExePathOptions.Single(x => x.Value == gameInfo.ExePath), viewModel.SelectedExePathOption);
+        Assert.Equal(gameInfo.ImagePath, viewModel.GameImage.ImagePath);
+        Assert.Equal(gameInfo.ExePath, viewModel.GameImage.ExePath);
+    }
+
+    [Fact]
+    public void Ctor_AdrenalineGameIdNotFound_DoesNotInitialize()
+    {
+        var viewModel = new GameEditViewModel(_packagedAppsService,
+            _qualifiedFileResolver,
+            _adrenalineGamesDataService,
+            _messenger,
+            _logger,
+            adrenalineGameId: Guid.NewGuid());
+
+        Assert.Equal("Edit Game", viewModel.Title);
+        Assert.Equal(Guid.Empty, viewModel.Id);
+        Assert.Null(viewModel.DisplayName);
+        Assert.Null(viewModel.Command);
+        Assert.Null(viewModel.ImagePath);
+        Assert.Null(viewModel.ExePath);
+        Assert.Empty(viewModel.ExePathOptions);
+        Assert.Null(viewModel.SelectedExePathOption);
+        Assert.Null(viewModel.GameImage.ImagePath);
+        Assert.Null(viewModel.GameImage.ExePath);
     }
 
     [Fact]
@@ -152,12 +275,12 @@ public class GameEditViewModelTests
         // Arrange
         _viewModel.Id = Guid.NewGuid();
         _viewModel.DisplayName = "Test Display Name";
-        _viewModel.ImagePath = new Uri(@"C:\Path\Image.png");
+        _viewModel.ImagePath = @"C:\Path\Image.png";
         _viewModel.Command = "Test-Command";
-        _viewModel.ExePath = @"C:\Path\Executabe.exe";
+        _viewModel.ExePath = @"C:\Path\Executable.exe";
         var expected = new AdrenalineGameInfo(_viewModel.Id,
             _viewModel.DisplayName,
-            _viewModel.ImagePath.LocalPath,
+            _viewModel.ImagePath,
             _viewModel.Command,
             _viewModel.ExePath,
             true);
@@ -166,7 +289,7 @@ public class GameEditViewModelTests
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
         // Assert
-        await _adrenalineGamesDataService.Received(1).AddAsync(expected);
+        await _adrenalineGamesDataService.Received(1).SaveAsync(expected);
         _messenger.Received(1).Send(NavigateBackMessage.Instance, Arg.Any<TestMessengerToken>());
     }
 
@@ -182,7 +305,7 @@ public class GameEditViewModelTests
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
-        await _adrenalineGamesDataService.Received(1).AddAsync(expected);
+        await _adrenalineGamesDataService.Received(1).SaveAsync(expected);
         _messenger.Received(1).Send(NavigateBackMessage.Instance, Arg.Any<TestMessengerToken>());
     }
 
@@ -195,7 +318,7 @@ public class GameEditViewModelTests
             string.Empty,
             string.Empty,
             true);
-        _adrenalineGamesDataService.AddAsync(Arg.Any<AdrenalineGameInfo>()).ThrowsAsync<Exception>();
+        _adrenalineGamesDataService.SaveAsync(Arg.Any<AdrenalineGameInfo>()).ThrowsAsync<Exception>();
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
 

@@ -3,6 +3,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:MrCapitalQ.AdrenalineGamesEditor.Games"
+      xmlns:controls="using:CommunityToolkit.WinUI.Controls"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       mc:Ignorable="d">
@@ -16,7 +17,7 @@
                     DefaultLabelPosition="Right"
                     VerticalContentAlignment="Center">
             <CommandBar.Content>
-                <TextBlock Text="New Game"
+                <TextBlock Text="{x:Bind _viewModel.Title, Mode=OneWay}"
                            Style="{StaticResource TitleTextBlockStyle}"
                            Margin="12,0" />
             </CommandBar.Content>
@@ -28,11 +29,10 @@
         <ScrollView Grid.Row="1">
             <StackPanel Margin="16"
                         Spacing="16">
-                <Image Width="150">
-                    <Image.Source>
-                        <BitmapImage UriSource="{x:Bind _viewModel.ImagePath, Mode=OneWay}" />
-                    </Image.Source>
-                </Image>
+                <local:AdrenalineGameImage Game="{x:Bind _viewModel.GameImage, Mode=OneWay}"
+                                           Width="150"
+                                           Height="150"
+                                           CornerRadius="{StaticResource ControlCornerRadius}" />
                 <TextBox Text="{x:Bind _viewModel.DisplayName, Mode=TwoWay}"
                          Header="Display name" />
                 <TextBox Text="{x:Bind _viewModel.Command, Mode=TwoWay}"
@@ -43,9 +43,17 @@
                               DisplayMemberPath="Display"
                               Header="Executable path"
                               HorizontalAlignment="Stretch" />
-                    <TextBlock Text="{x:Bind _viewModel.ExePath, Mode=OneWay}"
-                               Style="{StaticResource CaptionTextBlockStyle}"
-                               Foreground="{StaticResource TextFillColorSecondaryBrush}" />
+                    <controls:SwitchPresenter Value="{x:Bind _viewModel.SelectedExePathOption.Value, Mode=OneWay}">
+                        <controls:Case IsDefault="True">
+                            <TextBlock Text="{x:Bind _viewModel.ExePath, Mode=OneWay}"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{StaticResource TextFillColorSecondaryBrush}" />
+                        </controls:Case>
+                        <controls:Case Value="!CUSTOM!">
+                            <TextBox Text="{x:Bind _viewModel.ExePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     TextWrapping="Wrap" />
+                        </controls:Case>
+                    </controls:SwitchPresenter>
                 </StackPanel>
             </StackPanel>
         </ScrollView>

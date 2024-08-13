@@ -3,22 +3,21 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:MrCapitalQ.AdrenalineGamesEditor.Games"
+      xmlns:core="using:Microsoft.Xaml.Interactions.Core"
+      xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       mc:Ignorable="d">
 
     <Page.Resources>
-        <local:GameImageConverter x:Key="GameImageConverter" />
-
         <DataTemplate x:Key="GameListItemTemplate"
                       x:DataType="local:GameListItemViewModel">
             <StackPanel Orientation="Horizontal">
-                <Border Width="44"
-                        Height="44"
-                        Margin="0,4,8,4"
-                        CornerRadius="{StaticResource ControlCornerRadius}">
-                    <Image Source="{x:Bind Converter={StaticResource GameImageConverter}}" />
-                </Border>
+                <local:AdrenalineGameImage Game="{x:Bind}"
+                                           Width="44"
+                                           Height="44"
+                                           Margin="0,4,8,4"
+                                           CornerRadius="{StaticResource ControlCornerRadius}" />
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}" />
                 </StackPanel>
@@ -88,6 +87,15 @@
         <ListView ItemsSource="{x:Bind _viewModel.GamesCollectionView}"
                   ItemTemplate="{StaticResource GameListItemTemplate}"
                   SelectionMode="None"
-                  Grid.Row="4" />
+                  IsItemClickEnabled="True"
+                  Grid.Row="4">
+            <interactivity:Interaction.Behaviors>
+                <core:EventTriggerBehavior EventName="ItemClick">
+                    <core:InvokeCommandAction Command="{x:Bind _viewModel.EditGameCommand}"
+                                              InputConverter="{StaticResource ItemClickedParameterConverter}" />
+                </core:EventTriggerBehavior>
+            </interactivity:Interaction.Behaviors>
+
+        </ListView>
     </Grid>
 </Page>

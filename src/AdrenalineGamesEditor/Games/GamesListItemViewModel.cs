@@ -3,7 +3,7 @@ using MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline;
 
 namespace MrCapitalQ.AdrenalineGamesEditor.Games;
 
-internal partial class GameListItemViewModel : ObservableObject
+internal partial class GameListItemViewModel : ObservableObject, IAdrenalineGameImageInfo
 {
     [ObservableProperty]
     private string _displayName = string.Empty;

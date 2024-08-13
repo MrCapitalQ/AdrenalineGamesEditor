@@ -97,6 +97,10 @@ internal partial class GamesListViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private void EditGame(GameListItemViewModel item)
+        => _messenger.Send(new NavigateMessage(typeof(GameEditPage), item.Id));
+
     private void DataService_GamesDataChanged(object? sender, EventArgs e) => UpdateGamesList();
 
     private void DataService_IsRestartRequiredChanged(object? sender, EventArgs e)

@@ -90,7 +90,7 @@ public class GamesListViewModelTests
         viewModel.AddGameCommand.Execute(null);
 
         _messenger.Received(1).Send(Arg.Any<PickPackagedAppRequestMessage>(), Arg.Any<TestMessengerToken>());
-        _messenger.Received(1).Send(Arg.Is<NavigateMessage>(x => (x.Parameter as string) == selectedGame.AppUserModelId), Arg.Any<TestMessengerToken>());
+        _messenger.Received(1).Send(Arg.Is<NavigateMessage>(x => x.SourcePageType == typeof(GameEditPage) && (x.Parameter as string) == selectedGame.AppUserModelId), Arg.Any<TestMessengerToken>());
     }
 
     [Fact]
@@ -119,6 +119,17 @@ public class GamesListViewModelTests
         await viewModel.RestartAdrenalineCommand.ExecuteAsync(null);
 
         Assert.True(viewModel.DidAdrenalineRestartFail);
+    }
+
+    [Fact]
+    public void EditGameCommand()
+    {
+        var clickedItem = new GameListItemViewModel() { Id = Guid.NewGuid() };
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger);
+
+        viewModel.EditGameCommand.Execute(clickedItem);
+
+        _messenger.Received(1).Send(Arg.Is<NavigateMessage>(x => x.SourcePageType == typeof(GameEditPage) && (x.Parameter as Guid?) == clickedItem.Id), Arg.Any<TestMessengerToken>());
     }
 
     [Fact]
