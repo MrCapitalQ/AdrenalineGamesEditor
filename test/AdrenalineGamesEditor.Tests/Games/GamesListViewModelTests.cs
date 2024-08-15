@@ -96,16 +96,21 @@ public class GamesListViewModelTests
     [Fact]
     public async Task RestartAdrenalineAsync_UpdatesIsAdrenalineRestarting()
     {
+        // Arrange
+        var tcs = new TaskCompletionSource<bool>();
         var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger);
-        _adrenalineGamesDataService.RestartAdrenalineAsync().Returns(Task.Delay(TimeSpan.FromSeconds(1), _timeProvider).ContinueWith(x => true));
+        _adrenalineGamesDataService.RestartAdrenalineAsync().Returns(tcs.Task);
 
+        // Act
         _ = viewModel.RestartAdrenalineCommand.ExecuteAsync(null);
 
+        // Assert
         Assert.True(viewModel.IsAdrenalineRestarting);
 
-        _timeProvider.Advance(TimeSpan.FromSeconds(1));
-        await Task.Delay(1);
+        // Arrange
+        tcs.SetResult(true);
 
+        // Assert
         Assert.False(viewModel.IsAdrenalineRestarting);
         await _adrenalineGamesDataService.Received(1).RestartAdrenalineAsync();
     }
