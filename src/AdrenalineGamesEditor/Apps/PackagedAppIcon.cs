@@ -70,7 +70,11 @@ public sealed class PackagedAppIcon : Control
         _qualifiers["AlternateForm"] = isLightMode ? "lightunplated" : "unplated";
 
         var path = _qualifiedFileResolver.GetPath(Package.InstalledPath, Package.Square44x44Logo, _qualifiers);
-        Icon = new BitmapImage(new Uri(path));
+        Icon = new BitmapImage(new Uri(path))
+        {
+            DecodePixelWidth = (int)ActualWidth,
+            DecodePixelHeight = (int)ActualHeight
+        };
     }
 
     private void PackagedAppIcon_ActualThemeChanged(FrameworkElement sender, object args) => UpdateIconPath();

@@ -1,4 +1,6 @@
-﻿namespace MrCapitalQ.AdrenalineGamesEditor.Core.Apps;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace MrCapitalQ.AdrenalineGamesEditor.Core.Apps;
 
 public record AppUserModelId
 {
@@ -23,5 +25,19 @@ public record AppUserModelId
             throw new FormatException($"The input string '{appUserModelId}' was not in a correct format.");
 
         return new(idSpan[..separatorIndex].ToString(), idSpan[(separatorIndex + 1)..].ToString());
+    }
+
+    public static bool TryParse(string appUserModelId, [NotNullWhen(true)] out AppUserModelId? result)
+    {
+        try
+        {
+            result = Parse(appUserModelId);
+            return true;
+        }
+        catch (Exception ex) when (ex is ArgumentException or FormatException)
+        {
+            result = null;
+            return false;
+        }
     }
 }

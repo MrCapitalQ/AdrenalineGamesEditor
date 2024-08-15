@@ -34,4 +34,34 @@ public class AppUserModelIdTests
     {
         Assert.Throws<ArgumentException>(() => AppUserModelId.Parse(applicationUserModelId));
     }
+
+    [Fact]
+    public void TryParse_ValidId_ReturnsTrueAndParsesOutFamilyNameAndAppId()
+    {
+        var expectedPackageFamilyName = "PackageFamilyName";
+        var expectedPackageAppId = "App";
+        var applicationUserModelId = $"{expectedPackageFamilyName}!{expectedPackageAppId}";
+
+        var actual = AppUserModelId.TryParse(applicationUserModelId, out var id);
+
+        Assert.True(actual);
+        Assert.NotNull(id);
+        Assert.Equal(expectedPackageFamilyName, id.PackageFamilyName);
+        Assert.Equal(expectedPackageAppId, id.PackageAppId);
+        Assert.Equal(applicationUserModelId, id.ValueAsString);
+    }
+
+    [InlineData("!")]
+    [InlineData("MissingAppId!")]
+    [InlineData("!MissingFamilyName")]
+    [InlineData("")]
+    [InlineData(" ")]
+    [Theory]
+    public void TryParse_InvalidId_ReturnsFalse(string applicationUserModelId)
+    {
+        var actual = AppUserModelId.TryParse(applicationUserModelId, out var id);
+
+        Assert.False(actual);
+        Assert.Null(id);
+    }
 }

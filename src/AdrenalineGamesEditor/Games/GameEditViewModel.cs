@@ -8,13 +8,18 @@ using MrCapitalQ.AdrenalineGamesEditor.Shared;
 
 namespace MrCapitalQ.AdrenalineGamesEditor.Games;
 
-internal partial class GameEditViewModel : ObservableObject
+internal partial class GameEditViewModel : ObservableObject, IAdrenalineGameImageInfo
 {
+    public readonly static ComboBoxOption<string> CustomExePathOption = new("!CUSTOM!", "Custom");
+
     private readonly IPackagedAppsService _packagedAppsService;
     private readonly IQualifiedFileResolver _qualifiedFileResolver;
     private readonly IAdrenalineGamesDataService _adrenalineGamesDataService;
     private readonly IMessenger _messenger;
     private readonly ILogger<GameEditViewModel> _logger;
+
+    [ObservableProperty]
+    private string _title = "Edit Game";
 
     [ObservableProperty]
     private Guid _id;
@@ -26,9 +31,11 @@ internal partial class GameEditViewModel : ObservableObject
     private string? _command;
 
     [ObservableProperty]
-    private Uri? _imagePath;
+    [NotifyPropertyChangedFor(nameof(GameImage))]
+    private string? _imagePath;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GameImage))]
     private string? _exePath;
 
     [ObservableProperty]
@@ -41,33 +48,30 @@ internal partial class GameEditViewModel : ObservableObject
         IQualifiedFileResolver qualifiedFileResolver,
         IAdrenalineGamesDataService adrenalineGamesDataService,
         IMessenger messenger,
-        ILogger<GameEditViewModel> logger)
-    {
-        _packagedAppsService = packagedAppsService;
-        _qualifiedFileResolver = qualifiedFileResolver;
-        _adrenalineGamesDataService = adrenalineGamesDataService;
-        _messenger = messenger;
-        _logger = logger;
-    }
-
-    public GameEditViewModel(IPackagedAppsService packagedAppsService,
-        IQualifiedFileResolver qualifiedFileResolver,
-        IAdrenalineGamesDataService adrenalineGamesDataService,
-        IMessenger messenger,
         ILogger<GameEditViewModel> logger,
-        string appUserModelId)
+        string? appUserModelId = null,
+        Guid? adrenalineGameId = null)
     {
         _packagedAppsService = packagedAppsService;
         _qualifiedFileResolver = qualifiedFileResolver;
         _adrenalineGamesDataService = adrenalineGamesDataService;
         _messenger = messenger;
         _logger = logger;
-        _ = InitForAppUserModelId(appUserModelId);
+
+        GameImage = new(this);
+
+        if (appUserModelId is not null)
+            _ = InitForAppUserModelId(appUserModelId);
+        else if (adrenalineGameId is not null)
+            _ = InitForAdrenalineGameId(adrenalineGameId.Value);
     }
 
+    public GameImageAdapter GameImage { get; }
 
     private async Task InitForAppUserModelId(string appUserModelId)
     {
+        Title = "New Game";
+
         var appInfo = await _packagedAppsService.GetInfoAsync(appUserModelId);
         if (appInfo is null)
             return;
@@ -80,12 +84,44 @@ internal partial class GameEditViewModel : ObservableObject
             : null;
         ExePathOptions = appInfo.ExecutablePaths
             .Select(x => new ComboBoxOption<string>(Path.Combine(appInfo.InstalledPath, x), $@"\{x}"))
+            .Concat([CustomExePathOption])
             .ToList();
 
-        SelectedExePathOption = ExePathOptions.FirstOrDefault(x => x.Value == exePath);
+        SelectedExePathOption = ExePathOptions.FirstOrDefault(x => x.Value == exePath)
+            ?? CustomExePathOption;
 
         if (appInfo.Square150x150Logo is not null)
-            ImagePath = new Uri(_qualifiedFileResolver.GetPath(appInfo.InstalledPath, appInfo.Square150x150Logo));
+            ImagePath = _qualifiedFileResolver.GetPath(appInfo.InstalledPath, appInfo.Square150x150Logo);
+    }
+
+    private async Task InitForAdrenalineGameId(Guid id)
+    {
+        var game = _adrenalineGamesDataService.GamesData.FirstOrDefault(x => x.Id == id);
+        if (game is null)
+            return;
+
+        Id = id;
+        DisplayName = game.DisplayName;
+        Command = game.CommandLine;
+        ImagePath = game.ImagePath;
+
+        if (AppUserModelId.TryParse(game.CommandLine, out var _)
+            && await _packagedAppsService.GetInfoAsync(game.CommandLine) is { } appInfo)
+        {
+            ExePathOptions = appInfo.ExecutablePaths
+                .Select(x => new ComboBoxOption<string>(Path.Combine(appInfo.InstalledPath, x), $@"\{x}"))
+                .Concat([CustomExePathOption])
+                .ToList();
+
+            SelectedExePathOption = ExePathOptions.FirstOrDefault(x => x.Value == game.ExePath)
+                ?? CustomExePathOption;
+        }
+        else
+        {
+            ExePathOptions = [CustomExePathOption];
+            SelectedExePathOption = CustomExePathOption;
+            ExePath = game.ExePath;
+        }
     }
 
     [RelayCommand]
@@ -93,14 +129,14 @@ internal partial class GameEditViewModel : ObservableObject
     {
         var gameInfo = new AdrenalineGameInfo(Id,
             DisplayName ?? string.Empty,
-            ImagePath?.LocalPath ?? string.Empty,
+            ImagePath ?? string.Empty,
             Command ?? string.Empty,
             ExePath ?? string.Empty,
             true);
 
         try
         {
-            await _adrenalineGamesDataService.AddAsync(gameInfo);
+            await _adrenalineGamesDataService.SaveAsync(gameInfo);
 
             _messenger.Send(NavigateBackMessage.Instance);
         }
@@ -112,9 +148,17 @@ internal partial class GameEditViewModel : ObservableObject
 
     partial void OnSelectedExePathOptionChanged(ComboBoxOption<string>? value)
     {
-        if (value is not null)
-            ExePath = value.Value;
-        else
+        if (value is null)
             ExePath = null;
+        else if (value != CustomExePathOption)
+            ExePath = value.Value;
+    }
+
+    internal class GameImageAdapter(GameEditViewModel viewModel) : IAdrenalineGameImageInfo
+    {
+        private readonly GameEditViewModel _viewModel = viewModel;
+
+        public string? ImagePath => _viewModel.ImagePath;
+        public string? ExePath => _viewModel.ExePath;
     }
 }

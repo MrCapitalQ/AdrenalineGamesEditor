@@ -3,6 +3,7 @@
                     xmlns:local="using:MrCapitalQ.AdrenalineGamesEditor"
                     xmlns:shared="using:MrCapitalQ.AdrenalineGamesEditor.Shared"
                     xmlns:apps="using:MrCapitalQ.AdrenalineGamesEditor.Apps"
+                    xmlns:games="using:MrCapitalQ.AdrenalineGamesEditor.Games"
                     xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals">
 
     <Style x:Key="NavigationBackButtonNormalStyle"
@@ -173,6 +174,8 @@
                 Value="44" />
         <Setter Property="Height"
                 Value="44" />
+        <Setter Property="Background"
+                Value="{StaticResource SubtleFillColorSecondaryBrush}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="apps:PackagedAppIcon">
@@ -181,6 +184,27 @@
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="{TemplateBinding CornerRadius}">
                         <Image Source="{TemplateBinding Icon}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="games:AdrenalineGameImage">
+        <Setter Property="Width"
+                Value="44" />
+        <Setter Property="Height"
+                Value="44" />
+        <Setter Property="Background"
+                Value="{StaticResource SubtleFillColorSecondaryBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="games:AdrenalineGameImage">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+                        <Image Source="{TemplateBinding Image}" />
                     </Border>
                 </ControlTemplate>
             </Setter.Value>

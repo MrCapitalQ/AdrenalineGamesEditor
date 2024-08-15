@@ -8,6 +8,6 @@ public interface IAdrenalineGamesDataService
     IReadOnlyCollection<AdrenalineGameInfo> GamesData { get; }
     bool IsRestartRequired { get; }
 
-    Task AddAsync(AdrenalineGameInfo gameInfo);
+    Task SaveAsync(AdrenalineGameInfo gameInfo);
     Task<bool> RestartAdrenalineAsync();
 }

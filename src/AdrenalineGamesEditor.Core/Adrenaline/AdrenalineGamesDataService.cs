@@ -2,6 +2,7 @@
 using MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline.Models;
 using MrCapitalQ.AdrenalineGamesEditor.Core.FileSystem;
 using System.Collections.Immutable;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -72,7 +73,8 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
         """;
     private static readonly JsonSerializerOptions s_serializerOptions = new(JsonSerializerDefaults.Web)
     {
-        WriteIndented = true
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
     private readonly string _amdGameDbDirectoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"AMD\CN");
@@ -125,7 +127,7 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
         }
     }
 
-    public async Task AddAsync(AdrenalineGameInfo gameInfo)
+    public async Task SaveAsync(AdrenalineGameInfo gameInfo)
     {
         using var fileStream = _readFileStreamCreator.Open(_amdGameDbFilePath);
         var rootNode = await JsonNode.ParseAsync(fileStream)
@@ -134,23 +136,37 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
         var gamesNode = (rootNode["games"]?.AsArray())
             ?? throw new InvalidOperationException("Failed to find games data in Adrenaline data file.");
 
-        // Resulting JSON node cannot be null unless DefaultNewGameEntry is literally "null".
-        var newGame = JsonNode.Parse(DefaultNewGameEntry)!;
+        var existingGames = gamesNode.Select(x => (Guid: x?["guid"]?.ToString(), Game: x))
+            .Where(x => x.Guid is not null && x.Game is not null)
+            .ToDictionary(x => x.Guid!, x => x.Game!);
 
         var guid = gameInfo.Id;
-        var existingIds = gamesNode.Select(x => x?["guid"]?.ToString()).Where(x => x is not null).ToHashSet();
-        while (guid == Guid.Empty || existingIds.Contains(guid.ToString("b")))
+
+        JsonNode gameEntry;
+
+        if (guid != Guid.Empty && existingGames.TryGetValue(guid.ToString("b"), out var match))
         {
-            guid = _guidGenerator.NewGuid();
+            gameEntry = match;
+        }
+        else
+        {
+            // Resulting JSON node cannot be null unless DefaultNewGameEntry is literally "null".
+            gameEntry = JsonNode.Parse(DefaultNewGameEntry)!;
+
+            while (guid == Guid.Empty || existingGames.ContainsKey(guid.ToString("b")))
+            {
+                guid = _guidGenerator.NewGuid();
+            }
+
+            gameEntry["guid"] = $"{{{guid}}}";
+            gamesNode.Add(gameEntry);
         }
 
-        newGame["guid"] = $"{{{guid}}}";
-        newGame["title"] = gameInfo.DisplayName;
-        newGame["commandline"] = gameInfo.CommandLine;
-        newGame["exe_path"] = gameInfo.ExePath;
-        newGame["image_info"] = gameInfo.ImagePath;
+        gameEntry["title"] = gameInfo.DisplayName;
+        gameEntry["commandline"] = gameInfo.CommandLine;
+        gameEntry["exe_path"] = gameInfo.ExePath;
+        gameEntry["image_info"] = gameInfo.ImagePath;
 
-        gamesNode.Add(newGame);
         await _fileWriter.WriteContentAsync(_amdGameDbFilePath, rootNode.ToJsonString(s_serializerOptions));
         IsRestartRequired = true;
     }

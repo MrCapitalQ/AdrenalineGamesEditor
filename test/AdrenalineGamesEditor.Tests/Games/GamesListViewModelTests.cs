@@ -90,22 +90,27 @@ public class GamesListViewModelTests
         viewModel.AddGameCommand.Execute(null);
 
         _messenger.Received(1).Send(Arg.Any<PickPackagedAppRequestMessage>(), Arg.Any<TestMessengerToken>());
-        _messenger.Received(1).Send(Arg.Is<NavigateMessage>(x => (x.Parameter as string) == selectedGame.AppUserModelId), Arg.Any<TestMessengerToken>());
+        _messenger.Received(1).Send(Arg.Is<NavigateMessage>(x => x.SourcePageType == typeof(GameEditPage) && (x.Parameter as string) == selectedGame.AppUserModelId), Arg.Any<TestMessengerToken>());
     }
 
     [Fact]
     public async Task RestartAdrenalineAsync_UpdatesIsAdrenalineRestarting()
     {
+        // Arrange
+        var tcs = new TaskCompletionSource<bool>();
         var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger);
-        _adrenalineGamesDataService.RestartAdrenalineAsync().Returns(Task.Delay(TimeSpan.FromSeconds(1), _timeProvider).ContinueWith(x => true));
+        _adrenalineGamesDataService.RestartAdrenalineAsync().Returns(tcs.Task);
 
+        // Act
         _ = viewModel.RestartAdrenalineCommand.ExecuteAsync(null);
 
+        // Assert
         Assert.True(viewModel.IsAdrenalineRestarting);
 
-        _timeProvider.Advance(TimeSpan.FromSeconds(1));
-        await Task.Delay(1);
+        // Arrange
+        tcs.SetResult(true);
 
+        // Assert
         Assert.False(viewModel.IsAdrenalineRestarting);
         await _adrenalineGamesDataService.Received(1).RestartAdrenalineAsync();
     }
@@ -119,6 +124,17 @@ public class GamesListViewModelTests
         await viewModel.RestartAdrenalineCommand.ExecuteAsync(null);
 
         Assert.True(viewModel.DidAdrenalineRestartFail);
+    }
+
+    [Fact]
+    public void EditGameCommand()
+    {
+        var clickedItem = new GameListItemViewModel() { Id = Guid.NewGuid() };
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger);
+
+        viewModel.EditGameCommand.Execute(clickedItem);
+
+        _messenger.Received(1).Send(Arg.Is<NavigateMessage>(x => x.SourcePageType == typeof(GameEditPage) && (x.Parameter as Guid?) == clickedItem.Id), Arg.Any<TestMessengerToken>());
     }
 
     [Fact]
