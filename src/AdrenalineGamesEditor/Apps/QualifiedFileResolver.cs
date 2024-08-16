@@ -3,7 +3,7 @@ using MrCapitalQ.AdrenalineGamesEditor.Core;
 using MrCapitalQ.AdrenalineGamesEditor.Core.Apps;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MrCapitalQ.AdrenalineGamesEditor.Infrastructure.Apps;
+namespace MrCapitalQ.AdrenalineGamesEditor.Apps;
 
 [ExcludeFromCodeCoverage(Justification = ExcludeFromCoverageJustifications.RequiresUIThread)]
 internal class QualifiedFileResolver : IQualifiedFileResolver

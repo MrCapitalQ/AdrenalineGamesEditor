@@ -1,7 +1,7 @@
 ﻿using MrCapitalQ.AdrenalineGamesEditor.Core;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MrCapitalQ.AdrenalineGamesEditor.Infrastructure;
+namespace MrCapitalQ.AdrenalineGamesEditor;
 
 [ExcludeFromCodeCoverage]
 internal class DispatcherQueueAdapter() : IDispatcherQueue

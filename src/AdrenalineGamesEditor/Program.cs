@@ -1,11 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MrCapitalQ.AdrenalineGamesEditor.Apps;
 using MrCapitalQ.AdrenalineGamesEditor.Core;
 using MrCapitalQ.AdrenalineGamesEditor.Core.Apps;
 using MrCapitalQ.AdrenalineGamesEditor.Games;
 using MrCapitalQ.AdrenalineGamesEditor.Infrastructure;
-using MrCapitalQ.AdrenalineGamesEditor.Infrastructure.Apps;
+using MrCapitalQ.AdrenalineGamesEditor.Shared;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MrCapitalQ.AdrenalineGamesEditor;
@@ -29,6 +30,8 @@ internal class Program
         builder.Services.AddSingleton<IDispatcherQueue, DispatcherQueueAdapter>();
         builder.Services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
         builder.Services.AddTransient<IQualifiedFileResolver, QualifiedFileResolver>();
+        builder.Services.AddTransient<IFilePicker, FilePicker>();
+        builder.Services.AddTransient<IClipboardService, ClipboardService>();
         builder.Services.AddFileSystem();
         builder.Services.AddAdrenalineGamesData();
         builder.Services.AddPackagedApps();

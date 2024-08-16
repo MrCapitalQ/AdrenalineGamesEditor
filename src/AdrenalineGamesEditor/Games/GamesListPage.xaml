@@ -13,7 +13,7 @@
         <DataTemplate x:Key="GameListItemTemplate"
                       x:DataType="local:GameListItemViewModel">
             <StackPanel Orientation="Horizontal">
-                <local:AdrenalineGameImage Game="{x:Bind}"
+                <local:AdrenalineGameImage Game="{x:Bind GameImage, Mode=OneWay}"
                                            Width="44"
                                            Height="44"
                                            Margin="0,4,8,4"
@@ -95,7 +95,6 @@
                                               InputConverter="{StaticResource ItemClickedParameterConverter}" />
                 </core:EventTriggerBehavior>
             </interactivity:Interaction.Behaviors>
-
         </ListView>
     </Grid>
 </Page>

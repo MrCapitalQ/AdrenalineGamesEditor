@@ -159,5 +159,7 @@ public class GamesListViewModelTests
         && expected.DisplayName == actual.DisplayName
         && expected.ImagePath == actual.ImagePath
         && expected.ExePath == actual.ExePath
-        && expected.IsManual == actual.IsManual;
+        && expected.IsManual == actual.IsManual
+        && expected.GameImage.ImagePath == actual.GameImage.ImagePath
+        && expected.GameImage.ExePath == actual.GameImage.ExePath;
 }

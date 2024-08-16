@@ -4,6 +4,8 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:MrCapitalQ.AdrenalineGamesEditor.Games"
       xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+      xmlns:core="using:Microsoft.Xaml.Interactions.Core"
+      xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       mc:Ignorable="d">
@@ -29,10 +31,56 @@
         <ScrollView Grid.Row="1">
             <StackPanel Margin="16"
                         Spacing="16">
-                <local:AdrenalineGameImage Game="{x:Bind _viewModel.GameImage, Mode=OneWay}"
-                                           Width="150"
-                                           Height="150"
-                                           CornerRadius="{StaticResource ControlCornerRadius}" />
+                <StackPanel HorizontalAlignment="Center">
+                    <local:AdrenalineGameImage Game="{x:Bind _viewModel.GameImage, Mode=OneWay}"
+                                               Width="150"
+                                               Height="150"
+                                               CornerRadius="{StaticResource ControlCornerRadius}">
+                        <local:AdrenalineGameImage.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="Copy image path"
+                                                Command="{x:Bind _viewModel.CopyImagePathCommand}" />
+                            </MenuFlyout>
+
+                        </local:AdrenalineGameImage.ContextFlyout>
+                    </local:AdrenalineGameImage>
+                    <CommandBar DefaultLabelPosition="Right">
+                        <AppBarButton Icon="Edit"
+                                      Label="Edit"
+                                      Command="{x:Bind _viewModel.EditImageCommand}" />
+                        <AppBarButton Icon="Clear"
+                                      Label="Remove"
+                                      IsEnabled="{x:Bind _viewModel.HasImagePath, Mode=OneWay}">
+                            <AppBarButton.Flyout>
+                                <Flyout x:Name="RemoveImageFlyout">
+                                    <Flyout.FlyoutPresenterStyle>
+                                        <Style TargetType="FlyoutPresenter"
+                                               BasedOn="{StaticResource DefaultFlyoutPresenterStyle}">
+                                            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility"
+                                                    Value="Disabled" />
+                                        </Style>
+                                    </Flyout.FlyoutPresenterStyle>
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Style="{ThemeResource BaseTextBlockStyle}"
+                                                   Text="Remove custom image?" />
+                                        <TextBlock Text="The custom image set for this game will no longer be used and the executable's icon will be used if available."
+                                                   TextWrapping="Wrap" />
+                                        <Button Content="Remove"
+                                                HorizontalAlignment="Right"
+                                                Command="{x:Bind _viewModel.RemoveImageCommand}">
+                                            <interactivity:Interaction.Behaviors>
+                                                <core:EventTriggerBehavior EventName="Click">
+                                                    <core:CallMethodAction MethodName="Hide"
+                                                                           TargetObject="{x:Bind RemoveImageFlyout}" />
+                                                </core:EventTriggerBehavior>
+                                            </interactivity:Interaction.Behaviors>
+                                        </Button>
+                                    </StackPanel>
+                                </Flyout>
+                            </AppBarButton.Flyout>
+                        </AppBarButton>
+                    </CommandBar>
+                </StackPanel>
                 <TextBox Text="{x:Bind _viewModel.DisplayName, Mode=TwoWay}"
                          Header="Display name" />
                 <TextBox Text="{x:Bind _viewModel.Command, Mode=TwoWay}"

@@ -9,15 +9,21 @@ internal partial class GameListItemViewModel : ObservableObject, IAdrenalineGame
     private string _displayName = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GameImage))]
     private string _imagePath = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GameImage))]
     private string _exePath = string.Empty;
 
     [ObservableProperty]
     private bool _isManual;
 
+    public GameListItemViewModel() => GameImage = new(this);
+
     public Guid Id { get; init; }
+
+    public GameImageAdapter GameImage { get; }
 
     public static GameListItemViewModel CreateFromInfo(AdrenalineGameInfo adrenalineGameInfo) => new()
     {
@@ -34,5 +40,13 @@ internal partial class GameListItemViewModel : ObservableObject, IAdrenalineGame
         ImagePath = adrenalineGameInfo.ImagePath;
         ExePath = adrenalineGameInfo.ExePath;
         IsManual = adrenalineGameInfo.IsManual;
+    }
+
+    internal class GameImageAdapter(GameListItemViewModel viewModel) : IAdrenalineGameImageInfo
+    {
+        private readonly GameListItemViewModel _viewModel = viewModel;
+
+        public string? ImagePath => _viewModel.ImagePath;
+        public string? ExePath => _viewModel.ExePath;
     }
 }
