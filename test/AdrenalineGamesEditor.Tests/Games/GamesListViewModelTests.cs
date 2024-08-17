@@ -4,6 +4,7 @@ using MrCapitalQ.AdrenalineGamesEditor.Apps;
 using MrCapitalQ.AdrenalineGamesEditor.Core;
 using MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline;
 using MrCapitalQ.AdrenalineGamesEditor.Core.Apps;
+using MrCapitalQ.AdrenalineGamesEditor.Core.FileSystem;
 using MrCapitalQ.AdrenalineGamesEditor.Games;
 using MrCapitalQ.AdrenalineGamesEditor.Shared;
 
@@ -17,6 +18,7 @@ public class GamesListViewModelTests
     private readonly IAdrenalineGamesDataService _adrenalineGamesDataService = Substitute.For<IAdrenalineGamesDataService>();
     private readonly IDispatcherQueue _dispatcherQueue = Substitute.For<IDispatcherQueue>();
     private readonly IMessenger _messenger = Substitute.For<IMessenger>();
+    private readonly IPath _path = Substitute.For<IPath>();
 
     public GamesListViewModelTests()
     {
@@ -25,21 +27,22 @@ public class GamesListViewModelTests
             x.Arg<Action>().Invoke();
             return true;
         });
+        _path.Exists(Arg.Any<string>()).Returns(true);
     }
 
     [Fact]
     public void Ctor_InitializesGamesCollectionView()
     {
         var games = new List<AdrenalineGameInfo> { CreateGameInfo(_gameTestData2), CreateGameInfo(_gameTestData1) };
-        var expectedGameVms = games.Select(GameListItemViewModel.CreateFromInfo).OrderBy(x => x.DisplayName);
+        var expectedGameVms = games.Select(GamesListItemViewModel.CreateFromInfo).OrderBy(x => x.DisplayName);
         _adrenalineGamesDataService.GamesData.Returns(games);
-        var expectedSort = new SortDescription(nameof(GameListItemViewModel.DisplayName), SortDirection.Ascending);
+        var expectedSort = new SortDescription(nameof(GamesListItemViewModel.DisplayName), SortDirection.Ascending);
 
-        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger);
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger, _path);
 
         var actualSort = Assert.Single(viewModel.GamesCollectionView.SortDescriptions);
         Assert.Equivalent(expectedSort, actualSort);
-        Assert.Equal(expectedGameVms, viewModel.GamesCollectionView.Cast<GameListItemViewModel>(), AreEqual);
+        Assert.Equal(expectedGameVms, viewModel.GamesCollectionView.Cast<GamesListItemViewModel>(), AreEqual);
     }
 
     [Fact]
@@ -51,15 +54,15 @@ public class GamesListViewModelTests
             matchingGameInfo,
             CreateGameInfo(_gameTestData2, false, false)
         };
-        var expected = GameListItemViewModel.CreateFromInfo(matchingGameInfo);
+        var expected = GamesListItemViewModel.CreateFromInfo(matchingGameInfo);
         _adrenalineGamesDataService.GamesData.Returns(games);
 
-        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger)
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger, _path)
         {
             ShowAutomaticallyDetectedGames = false
         };
 
-        var actual = Assert.Single(viewModel.GamesCollectionView.Cast<GameListItemViewModel>());
+        var actual = Assert.Single(viewModel.GamesCollectionView.Cast<GamesListItemViewModel>());
         Assert.Equal(expected, actual, AreEqual);
     }
 
@@ -72,15 +75,15 @@ public class GamesListViewModelTests
             matchingGameInfo,
             CreateGameInfo(_gameTestData2, true, false)
         };
-        var expected = GameListItemViewModel.CreateFromInfo(matchingGameInfo);
+        var expected = GamesListItemViewModel.CreateFromInfo(matchingGameInfo);
         _adrenalineGamesDataService.GamesData.Returns(games);
 
-        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger)
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger, _path)
         {
             ShowManuallyAddedGames = false
         };
 
-        var actual = Assert.Single(viewModel.GamesCollectionView.Cast<GameListItemViewModel>());
+        var actual = Assert.Single(viewModel.GamesCollectionView.Cast<GamesListItemViewModel>());
         Assert.Equal(expected, actual, AreEqual);
     }
 
@@ -92,15 +95,15 @@ public class GamesListViewModelTests
             CreateGameInfo(_gameTestData1, true, true),
             CreateGameInfo(_gameTestData2, true, false)
         };
-        var expectedGameVms = games.Select(GameListItemViewModel.CreateFromInfo).OrderBy(x => x.DisplayName);
+        var expectedGameVms = games.Select(GamesListItemViewModel.CreateFromInfo).OrderBy(x => x.DisplayName);
         _adrenalineGamesDataService.GamesData.Returns(games);
 
-        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger)
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger, _path)
         {
             ShowHiddenGames = true
         };
 
-        Assert.Equal(expectedGameVms, viewModel.GamesCollectionView.Cast<GameListItemViewModel>(), AreEqual);
+        Assert.Equal(expectedGameVms, viewModel.GamesCollectionView.Cast<GamesListItemViewModel>(), AreEqual);
     }
 
     [Fact]
@@ -108,19 +111,47 @@ public class GamesListViewModelTests
     {
         var initialGames = new List<AdrenalineGameInfo> { CreateGameInfo(_gameTestData2), CreateGameInfo(_gameTestData1) };
         var updatedGames = new List<AdrenalineGameInfo> { CreateGameInfo(_gameTestData3), CreateGameInfo(_gameTestData1) };
-        var expectedGameVms = updatedGames.Select(GameListItemViewModel.CreateFromInfo).OrderBy(x => x.DisplayName);
+        var expectedGameVms = updatedGames.Select(GamesListItemViewModel.CreateFromInfo).OrderBy(x => x.DisplayName);
         _adrenalineGamesDataService.GamesData.Returns(initialGames, updatedGames);
-        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger);
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger, _path);
 
         _adrenalineGamesDataService.GamesDataChanged += Raise.Event();
 
-        Assert.Equal(expectedGameVms, viewModel.GamesCollectionView.Cast<GameListItemViewModel>(), AreEqual);
+        Assert.Equal(expectedGameVms, viewModel.GamesCollectionView.Cast<GamesListItemViewModel>(), AreEqual);
+    }
+
+    [Fact]
+    public void DataService_GamesDataChanged_GameImagePathDoesNotExists_SetsRequiresAttentionToTrueForGame()
+    {
+        var game = CreateGameInfo(_gameTestData1);
+        _adrenalineGamesDataService.GamesData.Returns([game]);
+        _path.Exists(game.ImagePath).Returns(false);
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger, _path);
+
+        _adrenalineGamesDataService.GamesDataChanged += Raise.Event();
+
+        var actual = Assert.Single(viewModel.GamesCollectionView.OfType<GamesListItemViewModel>());
+        Assert.True(actual.RequiresAttention);
+    }
+
+    [Fact]
+    public void DataService_GamesDataChanged_GameExePathDoesNotExists_SetsRequiresAttentionToTrueForGame()
+    {
+        var game = CreateGameInfo(_gameTestData1);
+        _adrenalineGamesDataService.GamesData.Returns([game]);
+        _path.Exists(game.ExePath).Returns(false);
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger, _path);
+
+        _adrenalineGamesDataService.GamesDataChanged += Raise.Event();
+
+        var actual = Assert.Single(viewModel.GamesCollectionView.OfType<GamesListItemViewModel>());
+        Assert.True(actual.RequiresAttention);
     }
 
     [Fact]
     public void AddGameCommand_NoGameSelected_DoesNothing()
     {
-        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger);
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger, _path);
         _messenger.Send(Arg.Any<PickPackagedAppRequestMessage>(), Arg.Any<TestMessengerToken>()).Returns(x =>
         {
             var request = x.Arg<PickPackagedAppRequestMessage>();
@@ -138,7 +169,7 @@ public class GamesListViewModelTests
     public void AddGameCommand_GameSelected_SendsNavigateMessageWithSelectedGameId()
     {
         var selectedGame = new PackagedAppListing("Test Game", "Package!App", @"C:\InstalledLocation", DateTimeOffset.MinValue, null, null, true);
-        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger);
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger, _path);
         _messenger.Send(Arg.Any<PickPackagedAppRequestMessage>(), Arg.Any<TestMessengerToken>()).Returns(x =>
         {
             var request = x.Arg<PickPackagedAppRequestMessage>();
@@ -157,7 +188,7 @@ public class GamesListViewModelTests
     {
         // Arrange
         var tcs = new TaskCompletionSource<bool>();
-        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger);
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger, _path);
         _adrenalineGamesDataService.RestartAdrenalineAsync().Returns(tcs.Task);
 
         // Act
@@ -177,7 +208,7 @@ public class GamesListViewModelTests
     [Fact]
     public async Task RestartAdrenalineAsync_RestartFails_SetsDidAdrenalineRestartFailToTrue()
     {
-        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger);
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger, _path);
         _adrenalineGamesDataService.RestartAdrenalineAsync().Returns(false);
 
         await viewModel.RestartAdrenalineCommand.ExecuteAsync(null);
@@ -188,8 +219,8 @@ public class GamesListViewModelTests
     [Fact]
     public void EditGameCommand()
     {
-        var clickedItem = new GameListItemViewModel() { Id = Guid.NewGuid() };
-        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger);
+        var clickedItem = new GamesListItemViewModel() { Id = Guid.NewGuid() };
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger, _path);
 
         viewModel.EditGameCommand.Execute(clickedItem);
 
@@ -199,7 +230,7 @@ public class GamesListViewModelTests
     [Fact]
     public void DataService_IsRestartRequiredChanged_UpdatesIsAdrenalineRestarting()
     {
-        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger);
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger, _path);
         _adrenalineGamesDataService.IsRestartRequired.Returns(true);
 
         _adrenalineGamesDataService.IsRestartRequiredChanged += Raise.Event();
@@ -211,13 +242,13 @@ public class GamesListViewModelTests
         bool isManual = true,
         bool isHidden = false) => new(data.Id,
             data.DisplayName,
-            "Path_To_Image.png",
-            "Path_To_CommandLine",
-            "Path_To_Exe.exe",
+            @"C:\Path\Image.png",
+            "Test-Command",
+            @"C:\Path\Executable.exe",
             isManual,
             isHidden);
 
-    private static bool AreEqual(GameListItemViewModel expected, GameListItemViewModel actual) => expected.Id == actual.Id
+    private static bool AreEqual(GamesListItemViewModel expected, GamesListItemViewModel actual) => expected.Id == actual.Id
         && expected.DisplayName == actual.DisplayName
         && expected.EffectiveImagePath == actual.EffectiveImagePath
         && expected.IsManual == actual.IsManual

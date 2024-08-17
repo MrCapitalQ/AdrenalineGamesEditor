@@ -26,26 +26,41 @@
                                           TrueValue=" • Hidden" />
 
         <DataTemplate x:Key="GameListItemTemplate"
-                      x:DataType="local:GameListItemViewModel">
-            <StackPanel Orientation="Horizontal"
-                        Opacity="{x:Bind IsHidden, Mode=OneWay, Converter={StaticResource IsHiddenOpacityConverter}}">
+                      x:DataType="local:GamesListItemViewModel">
+            <Grid Opacity="{x:Bind IsHidden, Mode=OneWay, Converter={StaticResource IsHiddenOpacityConverter}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
                 <local:AdrenalineGameImage SourcePath="{x:Bind EffectiveImagePath, Mode=OneWay}"
                                            Width="44"
                                            Height="44"
                                            Margin="0,4,8,4"
                                            CornerRadius="{StaticResource ControlCornerRadius}" />
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}" />
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{x:Bind IsManual, Mode=OneWay, Converter={StaticResource IsManualSummaryConverter}}"
-                                   Style="{ThemeResource CaptionTextBlockStyle}"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        <TextBlock Text="{x:Bind IsHidden, Mode=OneWay, Converter={StaticResource IsHiddenSummaryConverter}}"
-                                   Style="{ThemeResource CaptionTextBlockStyle}"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    </StackPanel>
-                </StackPanel>
-            </StackPanel>
+                <RelativePanel VerticalAlignment="Center"
+                               Grid.Column="1">
+                    <TextBlock x:Name="DisplayName"
+                               Text="{x:Bind DisplayName, Mode=OneWay}"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="AddMethod"
+                               Text="{x:Bind IsManual, Mode=OneWay, Converter={StaticResource IsManualSummaryConverter}}"
+                               Style="{ThemeResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               RelativePanel.Below="DisplayName" />
+                    <TextBlock Text="{x:Bind IsHidden, Mode=OneWay, Converter={StaticResource IsHiddenSummaryConverter}}"
+                               Style="{ThemeResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               RelativePanel.RightOf="AddMethod"
+                               RelativePanel.AlignVerticalCenterWith="AddMethod" />
+                </RelativePanel>
+                <FontIcon Glyph="&#xE7BA;"
+                          Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                          Visibility="{x:Bind RequiresAttention, Mode=OneWay}"
+                          Margin="8,0"
+                          Grid.Column="2"
+                          ToolTipService.ToolTip="Attention required" />
+            </Grid>
         </DataTemplate>
     </Page.Resources>
 

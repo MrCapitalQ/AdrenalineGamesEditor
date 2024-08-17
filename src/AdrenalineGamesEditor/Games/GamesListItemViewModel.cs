@@ -3,7 +3,7 @@ using MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline;
 
 namespace MrCapitalQ.AdrenalineGamesEditor.Games;
 
-internal partial class GameListItemViewModel : ObservableObject
+internal partial class GamesListItemViewModel : ObservableObject
 {
     [ObservableProperty]
     private string _displayName = string.Empty;
@@ -17,15 +17,16 @@ internal partial class GameListItemViewModel : ObservableObject
     [ObservableProperty]
     private bool _isHidden;
 
+    [ObservableProperty]
+    private bool _requiresAttention;
+
     public Guid Id { get; init; }
 
-    public static GameListItemViewModel CreateFromInfo(AdrenalineGameInfo adrenalineGameInfo) => new()
+    public static GamesListItemViewModel CreateFromInfo(AdrenalineGameInfo adrenalineGameInfo) => new()
     {
         Id = adrenalineGameInfo.Id,
         DisplayName = adrenalineGameInfo.DisplayName,
-        EffectiveImagePath = !string.IsNullOrEmpty(adrenalineGameInfo.ImagePath)
-            ? adrenalineGameInfo.ImagePath
-            : adrenalineGameInfo.ExePath,
+        EffectiveImagePath = GetEffectiveImagePath(adrenalineGameInfo),
         IsManual = adrenalineGameInfo.IsManual,
         IsHidden = adrenalineGameInfo.IsHidden
     };
@@ -39,4 +40,9 @@ internal partial class GameListItemViewModel : ObservableObject
         IsManual = adrenalineGameInfo.IsManual;
         IsHidden = adrenalineGameInfo.IsHidden;
     }
+
+    private static string GetEffectiveImagePath(AdrenalineGameInfo adrenalineGameInfo)
+        => !string.IsNullOrEmpty(adrenalineGameInfo.ImagePath)
+            ? adrenalineGameInfo.ImagePath
+            : adrenalineGameInfo.ExePath;
 }

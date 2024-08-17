@@ -17,6 +17,7 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IReadFileStreamCreator, ReadFileStreamCreator>();
         services.TryAddTransient<IFileWriter, FileWriter>();
         services.TryAddTransient<IFileSystemWatcher, FileSystemWatcherAdapter>();
+        services.TryAddTransient<IPath, PathAdapter>();
         return services;
     }
 
