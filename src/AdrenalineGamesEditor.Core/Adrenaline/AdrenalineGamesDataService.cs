@@ -2,6 +2,7 @@
 using MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline.Models;
 using MrCapitalQ.AdrenalineGamesEditor.Core.FileSystem;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -166,6 +167,8 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
         gameEntry["commandline"] = gameInfo.CommandLine;
         gameEntry["exe_path"] = gameInfo.ExePath;
         gameEntry["image_info"] = gameInfo.ImagePath;
+        gameEntry["manual"] = gameInfo.IsManual.ToString(CultureInfo.InvariantCulture).ToUpperInvariant();
+        gameEntry["hidden"] = gameInfo.IsHidden.ToString(CultureInfo.InvariantCulture).ToUpperInvariant();
 
         await _fileWriter.WriteContentAsync(_amdGameDbFilePath, rootNode.ToJsonString(s_serializerOptions));
         IsRestartRequired = true;
@@ -195,8 +198,14 @@ internal class AdrenalineGamesDataService : IAdrenalineGamesDataService
             var data = await JsonSerializer.DeserializeAsync<AdrenalineGamesDataModel>(fileStream, s_serializerOptions);
 
             GamesData = data?.Games
-                .Where(x => !x.IsHidden && !x.IsAppForLink)
-                .Select(x => new AdrenalineGameInfo(x.Guid, x.Title, x.ImageInfo, x.CommandLine, x.ExePath, x.IsManual))
+                .Where(x => !x.IsAppForLink)
+                .Select(x => new AdrenalineGameInfo(x.Guid,
+                    x.Title,
+                    x.ImageInfo,
+                    x.CommandLine,
+                    x.ExePath,
+                    x.IsManual,
+                    x.IsHidden))
                 .ToImmutableList() ?? [];
 
             OnGamesDataChanged();

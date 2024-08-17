@@ -5,4 +5,5 @@ public record AdrenalineGameInfo(Guid Id,
     string ImagePath,
     string CommandLine,
     string ExePath,
-    bool IsManual);
+    bool IsManual,
+    bool IsHidden);

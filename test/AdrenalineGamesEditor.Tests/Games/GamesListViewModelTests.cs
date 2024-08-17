@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.WinUI.Collections;
-using Microsoft.Extensions.Time.Testing;
 using MrCapitalQ.AdrenalineGamesEditor.Apps;
 using MrCapitalQ.AdrenalineGamesEditor.Core;
 using MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline;
@@ -18,7 +17,6 @@ public class GamesListViewModelTests
     private readonly IAdrenalineGamesDataService _adrenalineGamesDataService = Substitute.For<IAdrenalineGamesDataService>();
     private readonly IDispatcherQueue _dispatcherQueue = Substitute.For<IDispatcherQueue>();
     private readonly IMessenger _messenger = Substitute.For<IMessenger>();
-    private readonly FakeTimeProvider _timeProvider = new();
 
     public GamesListViewModelTests()
     {
@@ -41,6 +39,67 @@ public class GamesListViewModelTests
 
         var actualSort = Assert.Single(viewModel.GamesCollectionView.SortDescriptions);
         Assert.Equivalent(expectedSort, actualSort);
+        Assert.Equal(expectedGameVms, viewModel.GamesCollectionView.Cast<GameListItemViewModel>(), AreEqual);
+    }
+
+    [Fact]
+    public void SetShowAutomaticallyAddedGames_False_FiltersOutAutomaticallyAddedgames()
+    {
+        var matchingGameInfo = CreateGameInfo(_gameTestData1, true, false);
+        var games = new List<AdrenalineGameInfo>
+        {
+            matchingGameInfo,
+            CreateGameInfo(_gameTestData2, false, false)
+        };
+        var expected = GameListItemViewModel.CreateFromInfo(matchingGameInfo);
+        _adrenalineGamesDataService.GamesData.Returns(games);
+
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger)
+        {
+            ShowAutomaticallyDetectedGames = false
+        };
+
+        var actual = Assert.Single(viewModel.GamesCollectionView.Cast<GameListItemViewModel>());
+        Assert.Equal(expected, actual, AreEqual);
+    }
+
+    [Fact]
+    public void SetShowManuallyAddedGames_False_FiltersOutManuallyAddedgames()
+    {
+        var matchingGameInfo = CreateGameInfo(_gameTestData1, false, false);
+        var games = new List<AdrenalineGameInfo>
+        {
+            matchingGameInfo,
+            CreateGameInfo(_gameTestData2, true, false)
+        };
+        var expected = GameListItemViewModel.CreateFromInfo(matchingGameInfo);
+        _adrenalineGamesDataService.GamesData.Returns(games);
+
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger)
+        {
+            ShowManuallyAddedGames = false
+        };
+
+        var actual = Assert.Single(viewModel.GamesCollectionView.Cast<GameListItemViewModel>());
+        Assert.Equal(expected, actual, AreEqual);
+    }
+
+    [Fact]
+    public void SetShowHiddenGames_True_IncludesHiddenGames()
+    {
+        var games = new List<AdrenalineGameInfo>
+        {
+            CreateGameInfo(_gameTestData1, true, true),
+            CreateGameInfo(_gameTestData2, true, false)
+        };
+        var expectedGameVms = games.Select(GameListItemViewModel.CreateFromInfo).OrderBy(x => x.DisplayName);
+        _adrenalineGamesDataService.GamesData.Returns(games);
+
+        var viewModel = new GamesListViewModel(_adrenalineGamesDataService, _dispatcherQueue, _messenger)
+        {
+            ShowHiddenGames = true
+        };
+
         Assert.Equal(expectedGameVms, viewModel.GamesCollectionView.Cast<GameListItemViewModel>(), AreEqual);
     }
 
@@ -148,18 +207,22 @@ public class GamesListViewModelTests
         Assert.True(viewModel.IsAdrenalineRestartRequired);
     }
 
-    private static AdrenalineGameInfo CreateGameInfo((Guid Id, string DisplayName) data) => new(data.Id,
-        data.DisplayName,
-        "Path_To_Image.png",
-        "Path_To_CommandLine",
-        "Path_To_Exe.exe",
-        true);
+    private static AdrenalineGameInfo CreateGameInfo((Guid Id, string DisplayName) data,
+        bool isManual = true,
+        bool isHidden = false) => new(data.Id,
+            data.DisplayName,
+            "Path_To_Image.png",
+            "Path_To_CommandLine",
+            "Path_To_Exe.exe",
+            isManual,
+            isHidden);
 
     private static bool AreEqual(GameListItemViewModel expected, GameListItemViewModel actual) => expected.Id == actual.Id
         && expected.DisplayName == actual.DisplayName
         && expected.ImagePath == actual.ImagePath
         && expected.ExePath == actual.ExePath
         && expected.IsManual == actual.IsManual
+        && expected.IsHidden == actual.IsHidden
         && expected.GameImage.ImagePath == actual.GameImage.ImagePath
         && expected.GameImage.ExePath == actual.GameImage.ExePath;
 }
