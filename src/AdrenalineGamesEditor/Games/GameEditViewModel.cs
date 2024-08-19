@@ -77,6 +77,8 @@ internal partial class GameEditViewModel : ObservableObject, IAdrenalineGameImag
 
     public GameImageAdapter GameImage { get; }
 
+    public bool HasImagePath => !string.IsNullOrEmpty(ImagePath);
+
     private async Task InitForAppUserModelId(string appUserModelId)
     {
         Title = "New Game";
@@ -170,8 +172,6 @@ internal partial class GameEditViewModel : ObservableObject, IAdrenalineGameImag
 
     [RelayCommand(CanExecute = nameof(HasImagePath))]
     private void CopyImagePath() => _clipboardService.SetText(ImagePath);
-
-    public bool HasImagePath => !string.IsNullOrEmpty(ImagePath);
 
     partial void OnSelectedExePathOptionChanged(ComboBoxOption<string>? value)
     {

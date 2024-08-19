@@ -41,7 +41,6 @@
                                 <MenuFlyoutItem Text="Copy image path"
                                                 Command="{x:Bind _viewModel.CopyImagePathCommand}" />
                             </MenuFlyout>
-
                         </local:AdrenalineGameImage.ContextFlyout>
                     </local:AdrenalineGameImage>
                     <CommandBar DefaultLabelPosition="Right">
