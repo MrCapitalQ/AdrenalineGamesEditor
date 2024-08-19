@@ -5,7 +5,6 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.ApplicationModel.Resources;
 using MrCapitalQ.AdrenalineGamesEditor.Core;
 using MrCapitalQ.AdrenalineGamesEditor.Core.Apps;
-using MrCapitalQ.AdrenalineGamesEditor.Infrastructure.Apps;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 

@@ -101,7 +101,7 @@ public sealed class AdrenalineGameImage : Control
         using var iconBitmap = icon.ToBitmap();
         using var memoryStream = new MemoryStream();
 
-        iconBitmap.Save(memoryStream, ImageFormat.Jpeg);
+        iconBitmap.Save(memoryStream, ImageFormat.Png);
         memoryStream.Position = 0;
 
         var image = new BitmapImage

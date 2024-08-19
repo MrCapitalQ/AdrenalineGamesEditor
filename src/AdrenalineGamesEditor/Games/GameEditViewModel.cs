@@ -2,9 +2,11 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
+using MrCapitalQ.AdrenalineGamesEditor.Core;
 using MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline;
 using MrCapitalQ.AdrenalineGamesEditor.Core.Apps;
 using MrCapitalQ.AdrenalineGamesEditor.Shared;
+using Windows.Storage.Pickers;
 
 namespace MrCapitalQ.AdrenalineGamesEditor.Games;
 
@@ -16,6 +18,8 @@ internal partial class GameEditViewModel : ObservableObject, IAdrenalineGameImag
     private readonly IQualifiedFileResolver _qualifiedFileResolver;
     private readonly IAdrenalineGamesDataService _adrenalineGamesDataService;
     private readonly IMessenger _messenger;
+    private readonly IFilePicker _filePicker;
+    private readonly IClipboardService _clipboardService;
     private readonly ILogger<GameEditViewModel> _logger;
 
     [ObservableProperty]
@@ -32,6 +36,7 @@ internal partial class GameEditViewModel : ObservableObject, IAdrenalineGameImag
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(GameImage))]
+    [NotifyPropertyChangedFor(nameof(HasImagePath))]
     private string? _imagePath;
 
     [ObservableProperty]
@@ -48,6 +53,8 @@ internal partial class GameEditViewModel : ObservableObject, IAdrenalineGameImag
         IQualifiedFileResolver qualifiedFileResolver,
         IAdrenalineGamesDataService adrenalineGamesDataService,
         IMessenger messenger,
+        IFilePicker filePicker,
+        IClipboardService clipboardService,
         ILogger<GameEditViewModel> logger,
         string? appUserModelId = null,
         Guid? adrenalineGameId = null)
@@ -56,6 +63,8 @@ internal partial class GameEditViewModel : ObservableObject, IAdrenalineGameImag
         _qualifiedFileResolver = qualifiedFileResolver;
         _adrenalineGamesDataService = adrenalineGamesDataService;
         _messenger = messenger;
+        _filePicker = filePicker;
+        _clipboardService = clipboardService;
         _logger = logger;
 
         GameImage = new(this);
@@ -67,6 +76,8 @@ internal partial class GameEditViewModel : ObservableObject, IAdrenalineGameImag
     }
 
     public GameImageAdapter GameImage { get; }
+
+    public bool HasImagePath => !string.IsNullOrEmpty(ImagePath);
 
     private async Task InitForAppUserModelId(string appUserModelId)
     {
@@ -145,6 +156,22 @@ internal partial class GameEditViewModel : ObservableObject, IAdrenalineGameImag
             _logger.LogError(ex, "Something went wrong while saving a game entry. {GameInfo}", gameInfo);
         }
     }
+
+    [RelayCommand]
+    private async Task EditImageAsync()
+    {
+        var path = await _filePicker.PickSingleFileAsync(PickerLocationId.ComputerFolder, [".jpg", ".jpeg", ".png", ".ico"]);
+        if (path is null)
+            return;
+
+        ImagePath = path;
+    }
+
+    [RelayCommand]
+    private void RemoveImage() => ImagePath = null;
+
+    [RelayCommand(CanExecute = nameof(HasImagePath))]
+    private void CopyImagePath() => _clipboardService.SetText(ImagePath);
 
     partial void OnSelectedExePathOptionChanged(ComboBoxOption<string>? value)
     {
