@@ -27,6 +27,15 @@ internal partial class GamesListViewModel : ObservableObject
     [ObservableProperty]
     private bool _didAdrenalineRestartFail;
 
+    [ObservableProperty]
+    private bool _showAutomaticallyDetectedGames = true;
+
+    [ObservableProperty]
+    private bool _showManuallyAddedGames = true;
+
+    [ObservableProperty]
+    private bool _showHiddenGames;
+
     public GamesListViewModel(IAdrenalineGamesDataService dataService, IDispatcherQueue dispatcherQueue, IMessenger messenger)
     {
         _dataService = dataService;
@@ -36,7 +45,19 @@ internal partial class GamesListViewModel : ObservableObject
         _dispatcherQueue = dispatcherQueue;
         _messenger = messenger;
 
-        GamesCollectionView = new(_games, true);
+        GamesCollectionView = new(_games, true)
+        {
+            Filter = x =>
+            {
+                var game = (GameListItemViewModel)x;
+
+                var isVisibleForAddMethod = (ShowAutomaticallyDetectedGames && !game.IsManual)
+                    || (ShowManuallyAddedGames && game.IsManual);
+                var isVisibleForHiddenStatus = ShowHiddenGames || !game.IsHidden;
+
+                return isVisibleForAddMethod && isVisibleForHiddenStatus;
+            }
+        };
         GamesCollectionView.SortDescriptions.Add(new(nameof(GameListItemViewModel.DisplayName), SortDirection.Ascending));
 
         UpdateGamesList();
@@ -72,6 +93,8 @@ internal partial class GamesListViewModel : ObservableObject
                 _games.Remove(_gamesDictionary[id]);
                 _gamesDictionary.Remove(id);
             }
+
+            GamesCollectionView.RefreshFilter();
         });
     }
 
@@ -105,4 +128,10 @@ internal partial class GamesListViewModel : ObservableObject
 
     private void DataService_IsRestartRequiredChanged(object? sender, EventArgs e)
         => IsAdrenalineRestartRequired = _dataService.IsRestartRequired;
+
+    partial void OnShowAutomaticallyDetectedGamesChanged(bool value) => GamesCollectionView.RefreshFilter();
+
+    partial void OnShowManuallyAddedGamesChanged(bool value) => GamesCollectionView.RefreshFilter();
+
+    partial void OnShowHiddenGamesChanged(bool value) => GamesCollectionView.RefreshFilter();
 }

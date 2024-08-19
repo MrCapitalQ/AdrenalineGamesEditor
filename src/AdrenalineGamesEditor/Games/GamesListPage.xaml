@@ -5,14 +5,30 @@
       xmlns:local="using:MrCapitalQ.AdrenalineGamesEditor.Games"
       xmlns:core="using:Microsoft.Xaml.Interactions.Core"
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+      xmlns:converters="using:CommunityToolkit.WinUI.Converters"
+      xmlns:ui="using:CommunityToolkit.WinUI"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      mc:Ignorable="d">
+      mc:Ignorable="d"
+      NavigationCacheMode="Enabled">
 
     <Page.Resources>
+        <converters:BoolToObjectConverter x:Key="IsManualSummaryConverter"
+                                          FalseValue="Automatically detected"
+                                          TrueValue="Manually added" />
+        <converters:BoolToObjectConverter x:Key="IsHiddenOpacityConverter"
+                                          FalseValue="1"
+                                          TrueValue="0.67" />
+
+        <!-- An exception is thrown if FalseValue is empty string or not set. Using a zero width space as a workaround. -->
+        <converters:BoolToObjectConverter x:Key="IsHiddenSummaryConverter"
+                                          FalseValue="&#x200B;"
+                                          TrueValue=" • Hidden" />
+
         <DataTemplate x:Key="GameListItemTemplate"
                       x:DataType="local:GameListItemViewModel">
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal"
+                        Opacity="{x:Bind IsHidden, Mode=OneWay, Converter={StaticResource IsHiddenOpacityConverter}}">
                 <local:AdrenalineGameImage Game="{x:Bind GameImage, Mode=OneWay}"
                                            Width="44"
                                            Height="44"
@@ -20,6 +36,14 @@
                                            CornerRadius="{StaticResource ControlCornerRadius}" />
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}" />
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{x:Bind IsManual, Mode=OneWay, Converter={StaticResource IsManualSummaryConverter}}"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock Text="{x:Bind IsHidden, Mode=OneWay, Converter={StaticResource IsHiddenSummaryConverter}}"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
                 </StackPanel>
             </StackPanel>
         </DataTemplate>
@@ -40,13 +64,28 @@
             </TransitionCollection>
         </Grid.ChildrenTransitions>
 
-        <CommandBar IsOpen="False"
-                    DefaultLabelPosition="Right"
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="GamesListStates">
+                <VisualState x:Name="Default" />
+                <VisualState x:Name="GamesListEmpty">
+                    <VisualState.StateTriggers>
+                        <ui:IsNullOrEmptyStateTrigger Value="{x:Bind _viewModel.GamesCollectionView}" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="EmptyListText.Visibility"
+                                Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
+        <CommandBar DefaultLabelPosition="Right"
                     VerticalContentAlignment="Center">
             <CommandBar.Content>
                 <TextBlock Text="Games"
                            Style="{StaticResource TitleTextBlockStyle}"
-                           Margin="12,0" />
+                           Margin="12,0"
+                           TextLineBounds="Tight" />
             </CommandBar.Content>
             <CommandBar.SecondaryCommands>
                 <AppBarButton Label="Restart Adrenaline"
@@ -59,6 +98,20 @@
             <AppBarButton Icon="Add"
                           Label="Add"
                           Command="{x:Bind _viewModel.AddGameCommand}" />
+            <AppBarButton Icon="Filter"
+                          Label="Filter">
+                <AppBarButton.Flyout>
+                    <MenuFlyout Placement="Bottom">
+                        <ToggleMenuFlyoutItem Text="Automatically detected"
+                                              IsChecked="{x:Bind _viewModel.ShowAutomaticallyDetectedGames, Mode=TwoWay}" />
+                        <ToggleMenuFlyoutItem Text="Manually added"
+                                              IsChecked="{x:Bind _viewModel.ShowManuallyAddedGames, Mode=TwoWay}" />
+                        <MenuFlyoutSeparator />
+                        <ToggleMenuFlyoutItem Text="Hidden"
+                                              IsChecked="{x:Bind _viewModel.ShowHiddenGames, Mode=TwoWay}" />
+                    </MenuFlyout>
+                </AppBarButton.Flyout>
+            </AppBarButton>
         </CommandBar>
 
         <ProgressBar IsIndeterminate="True"
@@ -84,17 +137,25 @@
             </InfoBar.ActionButton>
         </InfoBar>
 
-        <ListView ItemsSource="{x:Bind _viewModel.GamesCollectionView}"
-                  ItemTemplate="{StaticResource GameListItemTemplate}"
-                  SelectionMode="None"
-                  IsItemClickEnabled="True"
-                  Grid.Row="4">
-            <interactivity:Interaction.Behaviors>
-                <core:EventTriggerBehavior EventName="ItemClick">
-                    <core:InvokeCommandAction Command="{x:Bind _viewModel.EditGameCommand}"
-                                              InputConverter="{StaticResource ItemClickedParameterConverter}" />
-                </core:EventTriggerBehavior>
-            </interactivity:Interaction.Behaviors>
-        </ListView>
+        <Grid Grid.Row="4">
+            <TextBlock x:Name="EmptyListText"
+                       Text="No games found for the selected filters"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       TextAlignment="Center"
+                       Visibility="Collapsed"
+                       Margin="0,16" />
+            <ListView x:Name="GamesList"
+                      ItemsSource="{x:Bind _viewModel.GamesCollectionView}"
+                      ItemTemplate="{StaticResource GameListItemTemplate}"
+                      SelectionMode="None"
+                      IsItemClickEnabled="True">
+                <interactivity:Interaction.Behaviors>
+                    <core:EventTriggerBehavior EventName="ItemClick">
+                        <core:InvokeCommandAction Command="{x:Bind _viewModel.EditGameCommand}"
+                                                  InputConverter="{StaticResource ItemClickedParameterConverter}" />
+                    </core:EventTriggerBehavior>
+                </interactivity:Interaction.Behaviors>
+            </ListView>
+        </Grid>
     </Grid>
 </Page>

@@ -75,6 +75,8 @@ public class GameEditViewModelTests
         Assert.Equal(expectedExePath, viewModel.ExePath);
         Assert.Equal(expectedOptions, viewModel.ExePathOptions);
         Assert.Equal(viewModel.ExePathOptions.Single(x => x.Value == expectedExePath), viewModel.SelectedExePathOption);
+        Assert.True(viewModel.IsManual);
+        Assert.False(viewModel.IsHidden);
         Assert.Equal(expectedImagePath, viewModel.GameImage.ImagePath);
         Assert.Equal(expectedExePath, viewModel.GameImage.ExePath);
     }
@@ -119,6 +121,8 @@ public class GameEditViewModelTests
         Assert.Null(viewModel.ExePath);
         Assert.Equal(expectedOptions, viewModel.ExePathOptions);
         Assert.Equal(GameEditViewModel.CustomExePathOption, viewModel.SelectedExePathOption);
+        Assert.True(viewModel.IsManual);
+        Assert.False(viewModel.IsHidden);
         Assert.Equal(expectedImagePath, viewModel.GameImage.ImagePath);
         Assert.Null(viewModel.GameImage.ExePath);
     }
@@ -157,6 +161,7 @@ public class GameEditViewModelTests
             @"C:\Path\Image.png",
             "Test-Command",
             @"C:\Path\Executable.exe",
+            true,
             true);
         _adrenalineGamesDataService.GamesData.Returns([gameInfo]);
 
@@ -179,6 +184,8 @@ public class GameEditViewModelTests
         Assert.Equal(gameInfo.ExePath, viewModel.ExePath);
         Assert.Equal(expectedOptions, viewModel.ExePathOptions);
         Assert.Equal(GameEditViewModel.CustomExePathOption, viewModel.SelectedExePathOption);
+        Assert.Equal(gameInfo.IsManual, viewModel.IsManual);
+        Assert.Equal(gameInfo.IsHidden, viewModel.IsHidden);
         Assert.Equal(gameInfo.ImagePath, viewModel.GameImage.ImagePath);
         Assert.Equal(gameInfo.ExePath, viewModel.GameImage.ExePath);
     }
@@ -205,6 +212,7 @@ public class GameEditViewModelTests
             @"C:\Path\Image.png",
             appInfo.AppUserModelId,
             @"C:\InstalledLocation\Game.exe",
+            true,
             true);
         _adrenalineGamesDataService.GamesData.Returns([gameInfo]);
 
@@ -227,6 +235,8 @@ public class GameEditViewModelTests
         Assert.Equal(gameInfo.ExePath, viewModel.ExePath);
         Assert.Equal(expectedOptions, viewModel.ExePathOptions);
         Assert.Equal(viewModel.ExePathOptions.Single(x => x.Value == gameInfo.ExePath), viewModel.SelectedExePathOption);
+        Assert.Equal(gameInfo.IsManual, viewModel.IsManual);
+        Assert.Equal(gameInfo.IsHidden, viewModel.IsHidden);
         Assert.Equal(gameInfo.ImagePath, viewModel.GameImage.ImagePath);
         Assert.Equal(gameInfo.ExePath, viewModel.GameImage.ExePath);
     }
@@ -251,6 +261,8 @@ public class GameEditViewModelTests
         Assert.Null(viewModel.ExePath);
         Assert.Empty(viewModel.ExePathOptions);
         Assert.Null(viewModel.SelectedExePathOption);
+        Assert.False(viewModel.IsManual);
+        Assert.False(viewModel.IsHidden);
         Assert.Null(viewModel.GameImage.ImagePath);
         Assert.Null(viewModel.GameImage.ExePath);
     }
@@ -311,12 +323,15 @@ public class GameEditViewModelTests
         _viewModel.ImagePath = @"C:\Path\Image.png";
         _viewModel.Command = "Test-Command";
         _viewModel.ExePath = @"C:\Path\Executable.exe";
+        _viewModel.IsManual = true;
+        _viewModel.IsHidden = true;
         var expected = new AdrenalineGameInfo(_viewModel.Id,
             _viewModel.DisplayName,
             _viewModel.ImagePath,
             _viewModel.Command,
             _viewModel.ExePath,
-            true);
+            _viewModel.IsManual,
+            _viewModel.IsHidden);
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
@@ -334,7 +349,8 @@ public class GameEditViewModelTests
             string.Empty,
             string.Empty,
             string.Empty,
-            true);
+            false,
+            false);
 
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
@@ -350,7 +366,8 @@ public class GameEditViewModelTests
             string.Empty,
             string.Empty,
             string.Empty,
-            true);
+            false,
+            false);
         _adrenalineGamesDataService.SaveAsync(Arg.Any<AdrenalineGameInfo>()).ThrowsAsync<Exception>();
 
         await _viewModel.SaveCommand.ExecuteAsync(null);

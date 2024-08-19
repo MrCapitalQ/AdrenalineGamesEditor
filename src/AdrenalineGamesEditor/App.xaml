@@ -10,6 +10,9 @@
                 <ResourceDictionary Source="Themes/Generic.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
+            <StaticResource x:Key="CommandBarBackgroundOpen"
+                            ResourceKey="ControlFillColorTransparentBrush" />
+            
             <shared:ItemClickedParameterConverter x:Key="ItemClickedParameterConverter" />
         </ResourceDictionary>
     </Application.Resources>

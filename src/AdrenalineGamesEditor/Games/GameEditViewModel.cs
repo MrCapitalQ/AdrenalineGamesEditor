@@ -10,7 +10,7 @@ using Windows.Storage.Pickers;
 
 namespace MrCapitalQ.AdrenalineGamesEditor.Games;
 
-internal partial class GameEditViewModel : ObservableObject, IAdrenalineGameImageInfo
+internal partial class GameEditViewModel : ObservableObject
 {
     public readonly static ComboBoxOption<string> CustomExePathOption = new("!CUSTOM!", "Custom");
 
@@ -48,6 +48,12 @@ internal partial class GameEditViewModel : ObservableObject, IAdrenalineGameImag
 
     [ObservableProperty]
     private ComboBoxOption<string>? _selectedExePathOption;
+
+    [ObservableProperty]
+    private bool _isManual;
+
+    [ObservableProperty]
+    private bool _isHidden;
 
     public GameEditViewModel(IPackagedAppsService packagedAppsService,
         IQualifiedFileResolver qualifiedFileResolver,
@@ -89,6 +95,8 @@ internal partial class GameEditViewModel : ObservableObject, IAdrenalineGameImag
 
         DisplayName = appInfo.DisplayName;
         Command = appUserModelId;
+        IsManual = true;
+        IsHidden = false;
 
         var exePath = appInfo.ExecutablePath is not null
             ? Path.Combine(appInfo.InstalledPath, appInfo.ExecutablePath)
@@ -115,6 +123,8 @@ internal partial class GameEditViewModel : ObservableObject, IAdrenalineGameImag
         DisplayName = game.DisplayName;
         Command = game.CommandLine;
         ImagePath = game.ImagePath;
+        IsManual = game.IsManual;
+        IsHidden = game.IsHidden;
 
         if (AppUserModelId.TryParse(game.CommandLine, out var _)
             && await _packagedAppsService.GetInfoAsync(game.CommandLine) is { } appInfo)
@@ -143,7 +153,8 @@ internal partial class GameEditViewModel : ObservableObject, IAdrenalineGameImag
             ImagePath ?? string.Empty,
             Command ?? string.Empty,
             ExePath ?? string.Empty,
-            true);
+            IsManual,
+            IsHidden);
 
         try
         {

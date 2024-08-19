@@ -43,7 +43,8 @@ public class AdrenalineGamesDataServiceTests
             "Path_To_Image.png",
             "Path_To_CommandLine",
             "Path_To_Exe.exe",
-            true);
+            true,
+            false);
         var json = $$"""
             {
               "games": [
@@ -79,39 +80,6 @@ public class AdrenalineGamesDataServiceTests
     public void Ctor_WithNullData_PopulatesNoGamesData()
     {
         var json = "null";
-        var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
-        _readFileStreamCreator.Open(Arg.Any<string>()).Returns(stream);
-
-        var service = new AdrenalineGamesDataService(_fileSystemWatcher,
-            _readFileStreamCreator,
-            _fileWriter,
-            _adrenalineProcessManager,
-            _guidGenerator,
-            _timeProvider,
-            _logger);
-
-        Assert.Empty(service.GamesData);
-    }
-
-    [Fact]
-    public void Ctor_WithHiddenGamesData_ExcludesHiddenGames()
-    {
-        var json = """
-            {
-              "games": [
-                {
-                  "commandline": "Path_To_CommandLine",
-                  "exe_path": "Path_To_Exe.exe",
-                  "guid": "{be540504-826a-4fc6-8ea2-fca1a4373f63}",
-                  "hidden": "TRUE",
-                  "image_info": "Path_To_Image.png",
-                  "is_appforlink": "FALSE",
-                  "manual": "TRUE",
-                  "title": "Test Game"
-                }
-              ]
-            }            
-            """;
         var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
         _readFileStreamCreator.Open(Arg.Any<string>()).Returns(stream);
 
@@ -189,6 +157,7 @@ public class AdrenalineGamesDataServiceTests
             @"C:\Path\Image.png",
             "Test-Command",
             @"C:\Path\Executabe.exe",
+            true,
             true);
         var expected = """
             {
@@ -211,7 +180,7 @@ public class AdrenalineGamesDataServiceTests
                   "guid": "{9721c8ae-b162-4e64-bbc6-eac6d933b711}",
                   "has_framegen_profile": "FALSE",
                   "has_upscaling_profile": "FALSE",
-                  "hidden": "FALSE",
+                  "hidden": "TRUE",
                   "image_info": "C:\\Path\\Image.png",
                   "install_location": "",
                   "installer_id": "",
@@ -271,6 +240,7 @@ public class AdrenalineGamesDataServiceTests
             @"C:\Path\Image.png",
             "Test-Command",
             @"C:\Path\Executabe.exe",
+            true,
             true);
         var expected = """
             {
@@ -293,7 +263,7 @@ public class AdrenalineGamesDataServiceTests
                   "guid": "{9721c8ae-b162-4e64-bbc6-eac6d933b711}",
                   "has_framegen_profile": "FALSE",
                   "has_upscaling_profile": "FALSE",
-                  "hidden": "FALSE",
+                  "hidden": "TRUE",
                   "image_info": "C:\\Path\\Image.png",
                   "install_location": "",
                   "installer_id": "",
@@ -415,6 +385,7 @@ public class AdrenalineGamesDataServiceTests
             @"C:\Path\UpdatedImage.png",
             "Update-Test-Command",
             @"C:\Path\Update-Executabe.exe",
+            true,
             true);
         var expected = """
             {
@@ -437,7 +408,7 @@ public class AdrenalineGamesDataServiceTests
                   "guid": "{9721c8ae-b162-4e64-bbc6-eac6d933b711}",
                   "has_framegen_profile": "FALSE",
                   "has_upscaling_profile": "FALSE",
-                  "hidden": "FALSE",
+                  "hidden": "TRUE",
                   "image_info": "C:\\Path\\UpdatedImage.png",
                   "install_location": "",
                   "installer_id": "",
@@ -512,7 +483,8 @@ public class AdrenalineGamesDataServiceTests
             @"C:\Path\Image.png",
             "Test-Command",
             @"C:\Path\Executabe.exe",
-            true);
+            true,
+            false);
         var expected = """
             {
               "games": [
@@ -597,7 +569,8 @@ public class AdrenalineGamesDataServiceTests
             @"C:\Path\Image.png",
             "Test-Command",
             @"C:\Path\Executabe.exe",
-            true);
+            true,
+            false);
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.SaveAsync(gameInfo));
 
@@ -614,7 +587,8 @@ public class AdrenalineGamesDataServiceTests
             @"C:\Path\Image.png",
             "Test-Command",
             @"C:\Path\Executabe.exe",
-            true);
+            true,
+            false);
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.SaveAsync(gameInfo));
 
@@ -632,7 +606,8 @@ public class AdrenalineGamesDataServiceTests
             @"C:\Path\Image.png",
             "Test-Command",
             @"C:\Path\Executabe.exe",
-            true);
+            true,
+            false);
         await _service.SaveAsync(gameInfo);
 
         var actual = await _service.RestartAdrenalineAsync();
