@@ -156,7 +156,7 @@ public class AdrenalineGamesDataServiceTests
             "Test Display Name",
             @"C:\Path\Image.png",
             "Test-Command",
-            @"C:\Path\Executabe.exe",
+            @"C:\Path\Executable.exe",
             true,
             true);
         var expected = """
@@ -173,7 +173,7 @@ public class AdrenalineGamesDataServiceTests
                   "color_enabled": "FALSE",
                   "colors": [],
                   "commandline": "Test-Command",
-                  "exe_path": "C:\\Path\\Executabe.exe",
+                  "exe_path": "C:\\Path\\Executable.exe",
                   "eyefinity_enabled": "FALSE",
                   "framegen_enabled": 0,
                   "freeSyncForceSet": "FALSE",
@@ -239,7 +239,7 @@ public class AdrenalineGamesDataServiceTests
             "Test Display Name",
             @"C:\Path\Image.png",
             "Test-Command",
-            @"C:\Path\Executabe.exe",
+            @"C:\Path\Executable.exe",
             true,
             true);
         var expected = """
@@ -256,7 +256,7 @@ public class AdrenalineGamesDataServiceTests
                   "color_enabled": "FALSE",
                   "colors": [],
                   "commandline": "Test-Command",
-                  "exe_path": "C:\\Path\\Executabe.exe",
+                  "exe_path": "C:\\Path\\Executable.exe",
                   "eyefinity_enabled": "FALSE",
                   "framegen_enabled": 0,
                   "freeSyncForceSet": "FALSE",
@@ -330,7 +330,7 @@ public class AdrenalineGamesDataServiceTests
                   "color_enabled": "FALSE",
                   "colors": [],
                   "commandline": "Test-Command",
-                  "exe_path": "C:\\Path\\Executabe.exe",
+                  "exe_path": "C:\\Path\\Executable.exe",
                   "eyefinity_enabled": "FALSE",
                   "framegen_enabled": 0,
                   "freeSyncForceSet": "FALSE",
@@ -384,7 +384,7 @@ public class AdrenalineGamesDataServiceTests
             "Updated Test Display Name",
             @"C:\Path\UpdatedImage.png",
             "Update-Test-Command",
-            @"C:\Path\Update-Executabe.exe",
+            @"C:\Path\Update-Executable.exe",
             true,
             true);
         var expected = """
@@ -401,7 +401,7 @@ public class AdrenalineGamesDataServiceTests
                   "color_enabled": "FALSE",
                   "colors": [],
                   "commandline": "Update-Test-Command",
-                  "exe_path": "C:\\Path\\Update-Executabe.exe",
+                  "exe_path": "C:\\Path\\Update-Executable.exe",
                   "eyefinity_enabled": "FALSE",
                   "framegen_enabled": 0,
                   "freeSyncForceSet": "FALSE",
@@ -482,7 +482,7 @@ public class AdrenalineGamesDataServiceTests
             "Test Display Name",
             @"C:\Path\Image.png",
             "Test-Command",
-            @"C:\Path\Executabe.exe",
+            @"C:\Path\Executable.exe",
             true,
             false);
         var expected = """
@@ -506,7 +506,7 @@ public class AdrenalineGamesDataServiceTests
                   "color_enabled": "FALSE",
                   "colors": [],
                   "commandline": "Test-Command",
-                  "exe_path": "C:\\Path\\Executabe.exe",
+                  "exe_path": "C:\\Path\\Executable.exe",
                   "eyefinity_enabled": "FALSE",
                   "framegen_enabled": 0,
                   "freeSyncForceSet": "FALSE",
@@ -568,7 +568,7 @@ public class AdrenalineGamesDataServiceTests
             "Test Display Name",
             @"C:\Path\Image.png",
             "Test-Command",
-            @"C:\Path\Executabe.exe",
+            @"C:\Path\Executable.exe",
             true,
             false);
 
@@ -586,7 +586,7 @@ public class AdrenalineGamesDataServiceTests
             "Test Display Name",
             @"C:\Path\Image.png",
             "Test-Command",
-            @"C:\Path\Executabe.exe",
+            @"C:\Path\Executable.exe",
             true,
             false);
 
@@ -605,7 +605,7 @@ public class AdrenalineGamesDataServiceTests
             "Test Display Name",
             @"C:\Path\Image.png",
             "Test-Command",
-            @"C:\Path\Executabe.exe",
+            @"C:\Path\Executable.exe",
             true,
             false);
         await _service.SaveAsync(gameInfo);

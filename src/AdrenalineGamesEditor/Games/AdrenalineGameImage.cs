@@ -1,9 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using MrCapitalQ.AdrenalineGamesEditor.Core;
-using MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -13,14 +11,14 @@ namespace MrCapitalQ.AdrenalineGamesEditor.Games;
 [ExcludeFromCodeCoverage(Justification = ExcludeFromCoverageJustifications.RequiresUIThread)]
 public sealed class AdrenalineGameImage : Control
 {
-    public static readonly DependencyProperty GameProperty =
-       DependencyProperty.Register(nameof(Game),
-          typeof(IAdrenalineGameImageInfo),
+    public static readonly DependencyProperty SourcePathProperty =
+       DependencyProperty.Register(nameof(SourcePath),
+          typeof(string),
           typeof(AdrenalineGameImage),
           new PropertyMetadata(null));
     public static readonly DependencyProperty ImageProperty =
        DependencyProperty.Register(nameof(Image),
-          typeof(ImageSource),
+          typeof(BitmapImage),
           typeof(AdrenalineGameImage),
           new PropertyMetadata(null));
 
@@ -30,39 +28,51 @@ public sealed class AdrenalineGameImage : Control
         SizeChanged += AdrenalineGameImage_SizeChanged;
     }
 
-    public IAdrenalineGameImageInfo? Game
+    public string? SourcePath
     {
-        get => GetValue(GameProperty) as IAdrenalineGameImageInfo;
+        get => GetValue(SourcePathProperty) as string;
         set
         {
-            SetValue(GameProperty, value);
+            if (SourcePath == value)
+                return;
+
+            SetValue(SourcePathProperty, value);
             UpdateImage();
         }
     }
 
-    public ImageSource? Image
+    public BitmapImage? Image
     {
-        get => GetValue(ImageProperty) as ImageSource;
+        get => GetValue(ImageProperty) as BitmapImage;
         private set => SetValue(ImageProperty, value);
     }
 
     private void UpdateImage()
     {
-        if (!string.IsNullOrEmpty(Game?.ImagePath))
+        if (string.IsNullOrEmpty(SourcePath))
         {
-            Image = new BitmapImage(new Uri(Game.ImagePath))
-            {
-                DecodePixelWidth = (int)ActualWidth,
-                DecodePixelHeight = (int)ActualHeight
-            };
+            Image = null;
         }
-        else if (!string.IsNullOrEmpty(Game?.ExePath))
+        else if (".exe".Equals(Path.GetExtension(SourcePath), StringComparison.OrdinalIgnoreCase))
         {
-            using var icon = GetExeIcon(Game.ExePath);
+            using var icon = GetExeIcon(SourcePath);
             Image = CreateBitmapImage(icon);
         }
         else
-            Image = null;
+        {
+            var uriSource = new Uri(SourcePath);
+            if (Image?.UriSource != uriSource)
+                if (Image?.UriSource is not null)
+                    Image.UriSource = uriSource;
+                else
+                    Image = new BitmapImage(uriSource);
+        }
+
+        if (Image is not null)
+        {
+            Image.DecodePixelWidth = (int)ActualWidth;
+            Image.DecodePixelHeight = (int)ActualHeight;
+        }
     }
 
     private Icon? GetExeIcon(string path)
@@ -93,7 +103,7 @@ public sealed class AdrenalineGameImage : Control
         return icon;
     }
 
-    private BitmapImage? CreateBitmapImage(Icon? icon)
+    private static BitmapImage? CreateBitmapImage(Icon? icon)
     {
         if (icon is null)
             return null;
@@ -104,11 +114,7 @@ public sealed class AdrenalineGameImage : Control
         iconBitmap.Save(memoryStream, ImageFormat.Png);
         memoryStream.Position = 0;
 
-        var image = new BitmapImage
-        {
-            DecodePixelWidth = (int)ActualWidth,
-            DecodePixelHeight = (int)ActualHeight
-        };
+        var image = new BitmapImage();
         image.SetSource(memoryStream.AsRandomAccessStream());
 
         return image;

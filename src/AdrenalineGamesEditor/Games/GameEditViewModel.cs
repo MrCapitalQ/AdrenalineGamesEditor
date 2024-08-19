@@ -35,12 +35,12 @@ internal partial class GameEditViewModel : ObservableObject
     private string? _command;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(GameImage))]
+    [NotifyPropertyChangedFor(nameof(EffectiveImagePath))]
     [NotifyPropertyChangedFor(nameof(HasImagePath))]
     private string? _imagePath;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(GameImage))]
+    [NotifyPropertyChangedFor(nameof(EffectiveImagePath))]
     private string? _exePath;
 
     [ObservableProperty]
@@ -73,15 +73,13 @@ internal partial class GameEditViewModel : ObservableObject
         _clipboardService = clipboardService;
         _logger = logger;
 
-        GameImage = new(this);
-
         if (appUserModelId is not null)
             _ = InitForAppUserModelId(appUserModelId);
         else if (adrenalineGameId is not null)
             _ = InitForAdrenalineGameId(adrenalineGameId.Value);
     }
 
-    public GameImageAdapter GameImage { get; }
+    public string? EffectiveImagePath => !string.IsNullOrEmpty(ImagePath) ? ImagePath : ExePath;
 
     public bool HasImagePath => !string.IsNullOrEmpty(ImagePath);
 
@@ -190,13 +188,5 @@ internal partial class GameEditViewModel : ObservableObject
             ExePath = null;
         else if (value != CustomExePathOption)
             ExePath = value.Value;
-    }
-
-    internal class GameImageAdapter(GameEditViewModel viewModel) : IAdrenalineGameImageInfo
-    {
-        private readonly GameEditViewModel _viewModel = viewModel;
-
-        public string? ImagePath => _viewModel.ImagePath;
-        public string? ExePath => _viewModel.ExePath;
     }
 }

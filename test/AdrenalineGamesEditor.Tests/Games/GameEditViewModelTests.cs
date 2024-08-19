@@ -77,8 +77,6 @@ public class GameEditViewModelTests
         Assert.Equal(viewModel.ExePathOptions.Single(x => x.Value == expectedExePath), viewModel.SelectedExePathOption);
         Assert.True(viewModel.IsManual);
         Assert.False(viewModel.IsHidden);
-        Assert.Equal(expectedImagePath, viewModel.GameImage.ImagePath);
-        Assert.Equal(expectedExePath, viewModel.GameImage.ExePath);
     }
 
     [Fact]
@@ -123,8 +121,6 @@ public class GameEditViewModelTests
         Assert.Equal(GameEditViewModel.CustomExePathOption, viewModel.SelectedExePathOption);
         Assert.True(viewModel.IsManual);
         Assert.False(viewModel.IsHidden);
-        Assert.Equal(expectedImagePath, viewModel.GameImage.ImagePath);
-        Assert.Null(viewModel.GameImage.ExePath);
     }
 
     [Fact]
@@ -147,8 +143,8 @@ public class GameEditViewModelTests
         Assert.Null(viewModel.ExePath);
         Assert.Empty(viewModel.ExePathOptions);
         Assert.Null(viewModel.SelectedExePathOption);
-        Assert.Null(viewModel.GameImage.ImagePath);
-        Assert.Null(viewModel.GameImage.ExePath);
+        Assert.False(viewModel.IsManual);
+        Assert.False(viewModel.IsHidden);
     }
 
     [Fact]
@@ -186,8 +182,6 @@ public class GameEditViewModelTests
         Assert.Equal(GameEditViewModel.CustomExePathOption, viewModel.SelectedExePathOption);
         Assert.Equal(gameInfo.IsManual, viewModel.IsManual);
         Assert.Equal(gameInfo.IsHidden, viewModel.IsHidden);
-        Assert.Equal(gameInfo.ImagePath, viewModel.GameImage.ImagePath);
-        Assert.Equal(gameInfo.ExePath, viewModel.GameImage.ExePath);
     }
 
     [Fact]
@@ -235,10 +229,6 @@ public class GameEditViewModelTests
         Assert.Equal(gameInfo.ExePath, viewModel.ExePath);
         Assert.Equal(expectedOptions, viewModel.ExePathOptions);
         Assert.Equal(viewModel.ExePathOptions.Single(x => x.Value == gameInfo.ExePath), viewModel.SelectedExePathOption);
-        Assert.Equal(gameInfo.IsManual, viewModel.IsManual);
-        Assert.Equal(gameInfo.IsHidden, viewModel.IsHidden);
-        Assert.Equal(gameInfo.ImagePath, viewModel.GameImage.ImagePath);
-        Assert.Equal(gameInfo.ExePath, viewModel.GameImage.ExePath);
     }
 
     [Fact]
@@ -261,10 +251,6 @@ public class GameEditViewModelTests
         Assert.Null(viewModel.ExePath);
         Assert.Empty(viewModel.ExePathOptions);
         Assert.Null(viewModel.SelectedExePathOption);
-        Assert.False(viewModel.IsManual);
-        Assert.False(viewModel.IsHidden);
-        Assert.Null(viewModel.GameImage.ImagePath);
-        Assert.Null(viewModel.GameImage.ExePath);
     }
 
     [InlineData(null, false)]
@@ -276,6 +262,24 @@ public class GameEditViewModelTests
         _viewModel.ImagePath = path;
 
         var actual = _viewModel.HasImagePath;
+
+        Assert.Equal(expected, actual);
+    }
+
+    [InlineData(null, null, null)]
+    [InlineData(@"C:\Path\Image.png", null, @"C:\Path\Image.png")]
+    [InlineData(null, @"C:\Path\Game.exe", @"C:\Path\Game.exe")]
+    [InlineData("", "", "")]
+    [InlineData(@"C:\Path\Image.png", "", @"C:\Path\Image.png")]
+    [InlineData("", @"C:\Path\Game.exe", @"C:\Path\Game.exe")]
+    [InlineData(@"C:\Path\Image.png", @"C:\Path\Game.exe", @"C:\Path\Image.png")]
+    [Theory]
+    public void GetEffectiveImagePath_ReturnsImagePathWithExePathAsFallback(string? imagePath, string? exePath, string? expected)
+    {
+        _viewModel.ImagePath = imagePath;
+        _viewModel.ExePath = exePath;
+
+        var actual = _viewModel.EffectiveImagePath;
 
         Assert.Equal(expected, actual);
     }

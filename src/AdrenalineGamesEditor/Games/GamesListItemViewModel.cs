@@ -9,12 +9,7 @@ internal partial class GameListItemViewModel : ObservableObject
     private string _displayName = string.Empty;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(GameImage))]
-    private string _imagePath = string.Empty;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(GameImage))]
-    private string _exePath = string.Empty;
+    private string _effectiveImagePath = string.Empty;
 
     [ObservableProperty]
     private bool _isManual;
@@ -22,18 +17,15 @@ internal partial class GameListItemViewModel : ObservableObject
     [ObservableProperty]
     private bool _isHidden;
 
-    public GameListItemViewModel() => GameImage = new(this);
-
     public Guid Id { get; init; }
-
-    public GameImageAdapter GameImage { get; }
 
     public static GameListItemViewModel CreateFromInfo(AdrenalineGameInfo adrenalineGameInfo) => new()
     {
         Id = adrenalineGameInfo.Id,
         DisplayName = adrenalineGameInfo.DisplayName,
-        ImagePath = adrenalineGameInfo.ImagePath,
-        ExePath = adrenalineGameInfo.ExePath,
+        EffectiveImagePath = !string.IsNullOrEmpty(adrenalineGameInfo.ImagePath)
+            ? adrenalineGameInfo.ImagePath
+            : adrenalineGameInfo.ExePath,
         IsManual = adrenalineGameInfo.IsManual,
         IsHidden = adrenalineGameInfo.IsHidden
     };
@@ -41,17 +33,10 @@ internal partial class GameListItemViewModel : ObservableObject
     public void UpdateFromInfo(AdrenalineGameInfo adrenalineGameInfo)
     {
         DisplayName = adrenalineGameInfo.DisplayName;
-        ImagePath = adrenalineGameInfo.ImagePath;
-        ExePath = adrenalineGameInfo.ExePath;
+        EffectiveImagePath = !string.IsNullOrEmpty(adrenalineGameInfo.ImagePath)
+            ? adrenalineGameInfo.ImagePath
+            : adrenalineGameInfo.ExePath;
         IsManual = adrenalineGameInfo.IsManual;
         IsHidden = adrenalineGameInfo.IsHidden;
-    }
-
-    internal class GameImageAdapter(GameListItemViewModel viewModel) : IAdrenalineGameImageInfo
-    {
-        private readonly GameListItemViewModel _viewModel = viewModel;
-
-        public string? ImagePath => _viewModel.ImagePath;
-        public string? ExePath => _viewModel.ExePath;
     }
 }
