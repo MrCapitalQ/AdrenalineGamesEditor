@@ -219,10 +219,7 @@ public class GamesListViewModelTests
 
     private static bool AreEqual(GameListItemViewModel expected, GameListItemViewModel actual) => expected.Id == actual.Id
         && expected.DisplayName == actual.DisplayName
-        && expected.ImagePath == actual.ImagePath
-        && expected.ExePath == actual.ExePath
+        && expected.EffectiveImagePath == actual.EffectiveImagePath
         && expected.IsManual == actual.IsManual
-        && expected.IsHidden == actual.IsHidden
-        && expected.GameImage.ImagePath == actual.GameImage.ImagePath
-        && expected.GameImage.ExePath == actual.GameImage.ExePath;
+        && expected.IsHidden == actual.IsHidden;
 }

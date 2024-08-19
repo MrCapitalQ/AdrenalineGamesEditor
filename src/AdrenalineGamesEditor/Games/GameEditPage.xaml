@@ -32,7 +32,7 @@
             <StackPanel Margin="16"
                         Spacing="16">
                 <StackPanel HorizontalAlignment="Center">
-                    <local:AdrenalineGameImage Game="{x:Bind _viewModel.GameImage, Mode=OneWay}"
+                    <local:AdrenalineGameImage SourcePath="{x:Bind _viewModel.EffectiveImagePath, Mode=OneWay}"
                                                Width="150"
                                                Height="150"
                                                CornerRadius="{StaticResource ControlCornerRadius}">

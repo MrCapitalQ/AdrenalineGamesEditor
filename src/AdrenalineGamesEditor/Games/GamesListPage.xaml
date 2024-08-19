@@ -29,7 +29,7 @@
                       x:DataType="local:GameListItemViewModel">
             <StackPanel Orientation="Horizontal"
                         Opacity="{x:Bind IsHidden, Mode=OneWay, Converter={StaticResource IsHiddenOpacityConverter}}">
-                <local:AdrenalineGameImage Game="{x:Bind GameImage, Mode=OneWay}"
+                <local:AdrenalineGameImage SourcePath="{x:Bind EffectiveImagePath, Mode=OneWay}"
                                            Width="44"
                                            Height="44"
                                            Margin="0,4,8,4"
