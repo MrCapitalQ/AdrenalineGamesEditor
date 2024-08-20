@@ -74,7 +74,7 @@ internal partial class GamesListViewModel : ObservableObject
 
     private void UpdateGamesList()
     {
-        _dispatcherQueue.TryEnqueue((Action)(() =>
+        _dispatcherQueue.TryEnqueue(() =>
         {
             var removedId = _gamesDictionary.Keys.ToHashSet();
 
@@ -104,7 +104,7 @@ internal partial class GamesListViewModel : ObservableObject
             }
 
             GamesCollectionView.RefreshFilter();
-        }));
+        });
     }
 
     [RelayCommand]
