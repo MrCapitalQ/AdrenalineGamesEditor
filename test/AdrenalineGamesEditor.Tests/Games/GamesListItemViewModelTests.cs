@@ -3,7 +3,7 @@ using MrCapitalQ.AdrenalineGamesEditor.Games;
 
 namespace MrCapitalQ.AdrenalineGamesEditor.Tests.Games;
 
-public class GameListItemViewModelTests
+public class GamesListItemViewModelTests
 {
     [InlineData("", "", "")]
     [InlineData(@"C:\Path\Image.png", "", @"C:\Path\Image.png")]
@@ -22,7 +22,7 @@ public class GameListItemViewModelTests
             true,
             true);
 
-        var actual = GameListItemViewModel.CreateFromInfo(gameInfo);
+        var actual = GamesListItemViewModel.CreateFromInfo(gameInfo);
 
         Assert.Equal(gameInfo.Id, actual.Id);
         Assert.Equal(gameInfo.DisplayName, actual.DisplayName);
@@ -53,7 +53,7 @@ public class GameListItemViewModelTests
             exePath,
             true,
             true);
-        var actual = GameListItemViewModel.CreateFromInfo(gameInfo);
+        var actual = GamesListItemViewModel.CreateFromInfo(gameInfo);
 
         actual.UpdateFromInfo(updatedGameInfo);
 
@@ -61,5 +61,6 @@ public class GameListItemViewModelTests
         Assert.Equal(updatedGameInfo.DisplayName, actual.DisplayName);
         Assert.Equal(expectedEffectiveImagePath, actual.EffectiveImagePath);
         Assert.Equal(updatedGameInfo.IsManual, actual.IsManual);
+        Assert.Equal(updatedGameInfo.IsHidden, actual.IsHidden);
     }
 }

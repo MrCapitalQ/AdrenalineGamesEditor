@@ -5,6 +5,7 @@ using CommunityToolkit.WinUI.Collections;
 using MrCapitalQ.AdrenalineGamesEditor.Apps;
 using MrCapitalQ.AdrenalineGamesEditor.Core;
 using MrCapitalQ.AdrenalineGamesEditor.Core.Adrenaline;
+using MrCapitalQ.AdrenalineGamesEditor.Core.FileSystem;
 using MrCapitalQ.AdrenalineGamesEditor.Shared;
 using System.Collections.ObjectModel;
 
@@ -15,8 +16,9 @@ internal partial class GamesListViewModel : ObservableObject
     private readonly IAdrenalineGamesDataService _dataService;
     private readonly IDispatcherQueue _dispatcherQueue;
     private readonly IMessenger _messenger;
-    private readonly Dictionary<Guid, GameListItemViewModel> _gamesDictionary = [];
-    private readonly ObservableCollection<GameListItemViewModel> _games = [];
+    private readonly IPath _path;
+    private readonly Dictionary<Guid, GamesListItemViewModel> _gamesDictionary = [];
+    private readonly ObservableCollection<GamesListItemViewModel> _games = [];
 
     [ObservableProperty]
     private bool _isAdrenalineRestartRequired;
@@ -36,7 +38,10 @@ internal partial class GamesListViewModel : ObservableObject
     [ObservableProperty]
     private bool _showHiddenGames;
 
-    public GamesListViewModel(IAdrenalineGamesDataService dataService, IDispatcherQueue dispatcherQueue, IMessenger messenger)
+    public GamesListViewModel(IAdrenalineGamesDataService dataService,
+        IDispatcherQueue dispatcherQueue,
+        IMessenger messenger,
+        IPath path)
     {
         _dataService = dataService;
         _dataService.GamesDataChanged += DataService_GamesDataChanged;
@@ -44,12 +49,13 @@ internal partial class GamesListViewModel : ObservableObject
 
         _dispatcherQueue = dispatcherQueue;
         _messenger = messenger;
+        _path = path;
 
         GamesCollectionView = new(_games, true)
         {
             Filter = x =>
             {
-                var game = (GameListItemViewModel)x;
+                var game = (GamesListItemViewModel)x;
 
                 var isVisibleForAddMethod = (ShowAutomaticallyDetectedGames && !game.IsManual)
                     || (ShowManuallyAddedGames && game.IsManual);
@@ -58,7 +64,7 @@ internal partial class GamesListViewModel : ObservableObject
                 return isVisibleForAddMethod && isVisibleForHiddenStatus;
             }
         };
-        GamesCollectionView.SortDescriptions.Add(new(nameof(GameListItemViewModel.DisplayName), SortDirection.Ascending));
+        GamesCollectionView.SortDescriptions.Add(new(nameof(GamesListItemViewModel.DisplayName), SortDirection.Ascending));
 
         UpdateGamesList();
         IsAdrenalineRestartRequired = _dataService.IsRestartRequired;
@@ -76,16 +82,19 @@ internal partial class GamesListViewModel : ObservableObject
             {
                 removedId.Remove(gameInfo.Id);
 
-                if (_gamesDictionary.TryGetValue(gameInfo.Id, out var gameListItemViewModel))
+                if (_gamesDictionary.TryGetValue(gameInfo.Id, out var itemViewModel))
                 {
-                    gameListItemViewModel.UpdateFromInfo(gameInfo);
+                    itemViewModel.UpdateFromInfo(gameInfo);
                 }
                 else
                 {
-                    var gamesListItemViewModel = GameListItemViewModel.CreateFromInfo(gameInfo);
-                    _games.Add(gamesListItemViewModel);
-                    _gamesDictionary[gameInfo.Id] = gamesListItemViewModel;
+                    itemViewModel = GamesListItemViewModel.CreateFromInfo(gameInfo);
+                    _games.Add(itemViewModel);
+                    _gamesDictionary[gameInfo.Id] = itemViewModel;
                 }
+
+                itemViewModel.RequiresAttention = (!string.IsNullOrEmpty(gameInfo.ImagePath) && !_path.Exists(gameInfo.ImagePath))
+                    || (!string.IsNullOrEmpty(gameInfo.ExePath) && !_path.Exists(gameInfo.ExePath));
             }
 
             foreach (var id in removedId)
@@ -121,7 +130,7 @@ internal partial class GamesListViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void EditGame(GameListItemViewModel item)
+    private void EditGame(GamesListItemViewModel item)
         => _messenger.Send(new NavigateMessage(typeof(GameEditPage), item.Id));
 
     private void DataService_GamesDataChanged(object? sender, EventArgs e) => UpdateGamesList();

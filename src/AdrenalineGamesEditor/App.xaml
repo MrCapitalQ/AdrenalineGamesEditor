@@ -12,7 +12,8 @@
 
             <StaticResource x:Key="CommandBarBackgroundOpen"
                             ResourceKey="ControlFillColorTransparentBrush" />
-            
+            <Thickness x:Key="CommandBarBorderThicknessOpen">0</Thickness>
+
             <shared:ItemClickedParameterConverter x:Key="ItemClickedParameterConverter" />
         </ResourceDictionary>
     </Application.Resources>

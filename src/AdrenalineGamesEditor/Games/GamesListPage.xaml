@@ -26,16 +26,22 @@
                                           TrueValue=" • Hidden" />
 
         <DataTemplate x:Key="GameListItemTemplate"
-                      x:DataType="local:GameListItemViewModel">
-            <StackPanel Orientation="Horizontal"
-                        Opacity="{x:Bind IsHidden, Mode=OneWay, Converter={StaticResource IsHiddenOpacityConverter}}">
+                      x:DataType="local:GamesListItemViewModel">
+            <Grid Opacity="{x:Bind IsHidden, Mode=OneWay, Converter={StaticResource IsHiddenOpacityConverter}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
                 <local:AdrenalineGameImage SourcePath="{x:Bind EffectiveImagePath, Mode=OneWay}"
                                            Width="44"
                                            Height="44"
                                            Margin="0,4,8,4"
                                            CornerRadius="{StaticResource ControlCornerRadius}" />
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}" />
+                <StackPanel VerticalAlignment="Center"
+                            Grid.Column="1">
+                    <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}"
+                               TextTrimming="CharacterEllipsis" />
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{x:Bind IsManual, Mode=OneWay, Converter={StaticResource IsManualSummaryConverter}}"
                                    Style="{ThemeResource CaptionTextBlockStyle}"
@@ -45,14 +51,18 @@
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                     </StackPanel>
                 </StackPanel>
-            </StackPanel>
+                <FontIcon Glyph="&#xE7BA;"
+                          Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                          Visibility="{x:Bind RequiresAttention, Mode=OneWay}"
+                          Margin="8,0"
+                          Grid.Column="2"
+                          ToolTipService.ToolTip="Attention required" />
+            </Grid>
         </DataTemplate>
     </Page.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition />
@@ -114,30 +124,29 @@
             </AppBarButton>
         </CommandBar>
 
-        <ProgressBar IsIndeterminate="True"
-                     Visibility="{x:Bind _viewModel.IsAdrenalineRestarting, Mode=OneWay}"
-                     Grid.Row="1" />
 
-        <InfoBar IsOpen="{x:Bind _viewModel.DidAdrenalineRestartFail, Mode=TwoWay}"
-                 Severity="Error"
-                 Title="Arenaline restart failed."
-                 Message="Manually stop and start the Adrenaline app or restart your PC to apply your changes."
-                 Grid.Row="2" />
+        <StackPanel Grid.Row="1">
+            <ProgressBar IsIndeterminate="True"
+                         Visibility="{x:Bind _viewModel.IsAdrenalineRestarting, Mode=OneWay}" />
+            <InfoBar IsOpen="{x:Bind _viewModel.DidAdrenalineRestartFail, Mode=TwoWay}"
+                     Severity="Error"
+                     Title="Arenaline restart failed."
+                     Message="Manually stop and start the Adrenaline app or restart your PC to apply your changes." />
 
-        <InfoBar IsOpen="{x:Bind _viewModel.IsAdrenalineRestartRequired, Mode=OneWay}"
-                 IsClosable="False"
-                 Severity="Warning"
-                 Title="Changes were made but not applied."
-                 Message="Restart the Adrenaline app to apply your changes."
-                 Grid.Row="3">
-            <InfoBar.ActionButton>
-                <Button Content="Restart"
-                        HorizontalAlignment="Right"
-                        Command="{x:Bind _viewModel.RestartAdrenalineCommand}" />
-            </InfoBar.ActionButton>
-        </InfoBar>
+            <InfoBar IsOpen="{x:Bind _viewModel.IsAdrenalineRestartRequired, Mode=OneWay}"
+                     IsClosable="False"
+                     Severity="Warning"
+                     Title="Changes were made but not applied."
+                     Message="Restart the Adrenaline app to apply your changes.">
+                <InfoBar.ActionButton>
+                    <Button Content="Restart"
+                            HorizontalAlignment="Right"
+                            Command="{x:Bind _viewModel.RestartAdrenalineCommand}" />
+                </InfoBar.ActionButton>
+            </InfoBar>
+        </StackPanel>
 
-        <Grid Grid.Row="4">
+        <Grid Grid.Row="2">
             <TextBlock x:Name="EmptyListText"
                        Text="No games found for the selected filters"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
