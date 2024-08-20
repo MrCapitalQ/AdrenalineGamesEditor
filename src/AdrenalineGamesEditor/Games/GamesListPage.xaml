@@ -38,22 +38,19 @@
                                            Height="44"
                                            Margin="0,4,8,4"
                                            CornerRadius="{StaticResource ControlCornerRadius}" />
-                <RelativePanel VerticalAlignment="Center"
-                               Grid.Column="1">
-                    <TextBlock x:Name="DisplayName"
-                               Text="{x:Bind DisplayName, Mode=OneWay}"
+                <StackPanel VerticalAlignment="Center"
+                            Grid.Column="1">
+                    <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}"
                                TextTrimming="CharacterEllipsis" />
-                    <TextBlock x:Name="AddMethod"
-                               Text="{x:Bind IsManual, Mode=OneWay, Converter={StaticResource IsManualSummaryConverter}}"
-                               Style="{ThemeResource CaptionTextBlockStyle}"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                               RelativePanel.Below="DisplayName" />
-                    <TextBlock Text="{x:Bind IsHidden, Mode=OneWay, Converter={StaticResource IsHiddenSummaryConverter}}"
-                               Style="{ThemeResource CaptionTextBlockStyle}"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                               RelativePanel.RightOf="AddMethod"
-                               RelativePanel.AlignVerticalCenterWith="AddMethod" />
-                </RelativePanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{x:Bind IsManual, Mode=OneWay, Converter={StaticResource IsManualSummaryConverter}}"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock Text="{x:Bind IsHidden, Mode=OneWay, Converter={StaticResource IsHiddenSummaryConverter}}"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </StackPanel>
                 <FontIcon Glyph="&#xE7BA;"
                           Foreground="{ThemeResource SystemFillColorCautionBrush}"
                           Visibility="{x:Bind RequiresAttention, Mode=OneWay}"
