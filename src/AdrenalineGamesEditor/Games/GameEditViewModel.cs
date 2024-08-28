@@ -234,6 +234,16 @@ internal partial class GameEditViewModel : ObservableObject
     private void CopyImagePath() => _clipboardService.SetText(ImagePath);
 
     [RelayCommand]
+    private async Task BrowseExeAsync()
+    {
+        var path = await _filePicker.PickSingleFileAsync(PickerLocationId.ComputerFolder, [".exe"]);
+        if (path is null)
+            return;
+
+        ExePath = path;
+    }
+
+    [RelayCommand]
     private void AutoFix()
     {
         if (_autoFixImagePath is not null)
