@@ -2,7 +2,8 @@
 <Application x:Class="MrCapitalQ.AdrenalineGamesEditor.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:shared="using:MrCapitalQ.AdrenalineGamesEditor.Shared">
+             xmlns:shared="using:MrCapitalQ.AdrenalineGamesEditor.Shared"
+             xmlns:converters="using:CommunityToolkit.WinUI.Converters">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -15,6 +16,12 @@
             <Thickness x:Key="CommandBarBorderThicknessOpen">0</Thickness>
 
             <shared:ItemClickedParameterConverter x:Key="ItemClickedParameterConverter" />
+            <converters:EmptyStringToObjectConverter x:Key="IsEmptyStringConverter"
+                                                     EmptyValue="True"
+                                                     NotEmptyValue="False" />
+            <converters:EmptyStringToObjectConverter x:Key="IsNotEmptyStringConverter"
+                                                     EmptyValue="False"
+                                                     NotEmptyValue="True" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

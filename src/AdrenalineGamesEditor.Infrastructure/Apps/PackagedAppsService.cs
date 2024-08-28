@@ -19,7 +19,7 @@ internal class PackagedAppsService(ILogger<PackagedAppsService> logger) : IPacka
 
     public async Task<IEnumerable<PackagedAppListing>> GetAllAsync()
     {
-        var result = await Task.WhenAll(_packageManager.FindPackagesForUser(string.Empty).Select(GetForPackage));
+        var result = await Task.WhenAll(_packageManager.FindPackagesForUser(string.Empty).Select(GetForPackageAsync));
 
         return result.SelectMany(x => x);
     }
@@ -48,6 +48,22 @@ internal class PackagedAppsService(ILogger<PackagedAppsService> logger) : IPacka
                 package.Id.FullName);
         }
 
+        var executablePaths = await Task.Run(() =>
+        {
+            try
+            {
+                return Directory.GetFiles(package.InstalledPath, "*.exe", SearchOption.AllDirectories)
+                    .Select(x => Path.GetRelativePath(package.InstalledPath, x))
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to enumerate executables in install path {PackageInstalledPath}.",
+                    package.InstalledPath);
+                return [];
+            }
+        });
+
         return new(appListEntry.DisplayInfo.DisplayName,
             appListEntry.AppUserModelId,
             package.InstalledPath,
@@ -56,12 +72,10 @@ internal class PackagedAppsService(ILogger<PackagedAppsService> logger) : IPacka
             application?.VisualElements?.Square150x150Logo,
             IsGame(package),
             GetExecutablePath(package.InstalledPath, application),
-            Directory.GetFiles(package.InstalledPath, "*.exe", SearchOption.AllDirectories)
-                .Select(x => Path.GetRelativePath(package.InstalledPath, x))
-                .ToList());
+            executablePaths);
     }
 
-    private async Task<IEnumerable<PackagedAppListing>> GetForPackage(Package package)
+    private async Task<IEnumerable<PackagedAppListing>> GetForPackageAsync(Package package)
     {
         List<PackagedAppListing> result = [];
 

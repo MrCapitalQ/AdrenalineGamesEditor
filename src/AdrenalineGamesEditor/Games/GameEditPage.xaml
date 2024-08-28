@@ -6,6 +6,7 @@
       xmlns:controls="using:CommunityToolkit.WinUI.Controls"
       xmlns:core="using:Microsoft.Xaml.Interactions.Core"
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+      xmlns:ui="using:CommunityToolkit.WinUI"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       mc:Ignorable="d">
@@ -13,43 +14,126 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition />
         </Grid.RowDefinitions>
-        <CommandBar IsOpen="False"
+
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="PageStates">
+                <VisualState x:Name="ContentLoaded" />
+                <VisualState x:Name="ContentLoading">
+                    <VisualState.StateTriggers>
+                        <ui:IsEqualStateTrigger Value="{x:Bind _viewModel.IsLoading, Mode=OneWay}"
+                                                To="True" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="CommandBar.Visibility"
+                                Value="Collapsed" />
+                        <Setter Target="PageContent.Visibility"
+                                Value="Collapsed" />
+                        <Setter Target="LoadingIndicator.Visibility"
+                                Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup x:Name="ExePathStates">
+                <VisualState x:Name="DefaultExePathState" />
+                <VisualState x:Name="CustomExePathOnly">
+                    <VisualState.StateTriggers>
+                        <ui:CompareStateTrigger Comparison="LessThan"
+                                                Value="{x:Bind _viewModel.ExePathOptions.Count, Mode=OneWay}"
+                                                To="2" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="PackageExePaths.Visibility"
+                                Value="Collapsed" />
+                        <Setter Target="CustomExeBox.Header"
+                                Value="Executable path" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="PackageExePathSelected">
+                    <VisualState.StateTriggers>
+                        <ui:IsNotEqualStateTrigger Value="{x:Bind _viewModel.SelectedExePathOption.Value.Length, Mode=OneWay}"
+                                                   To="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="ExePathDisplay.Visibility"
+                                Value="Visible" />
+                        <Setter Target="CustomExeBox.Visibility"
+                                Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
+        <ProgressRing x:Name="LoadingIndicator"
+                      IsActive="True"
+                      Visibility="Collapsed"
+                      Grid.RowSpan="3" />
+
+        <CommandBar x:Name="CommandBar"
                     DefaultLabelPosition="Right"
                     VerticalContentAlignment="Center">
             <CommandBar.Content>
                 <TextBlock Text="{x:Bind _viewModel.Title, Mode=OneWay}"
                            Style="{StaticResource TitleTextBlockStyle}"
-                           Margin="12,0" />
+                           Margin="12,0"
+                           TextLineBounds="Tight" />
             </CommandBar.Content>
             <AppBarButton Icon="Save"
                           Label="Save"
-                          Command="{x:Bind _viewModel.SaveCommand}" />
+                          Command="{x:Bind _viewModel.SaveCommand}">
+                <AppBarButton.KeyboardAccelerators>
+                    <KeyboardAccelerator Key="S"
+                                         Modifiers="Control" />
+                </AppBarButton.KeyboardAccelerators>
+            </AppBarButton>
         </CommandBar>
 
-        <ScrollView Grid.Row="1">
+        <InfoBar IsOpen="{x:Bind _viewModel.CanAutoFix, Mode=OneWay}"
+                 Severity="Warning"
+                 Message="The installed location of this game or app's package has changed and new equivalent paths were found."
+                 Grid.Row="1">
+            <InfoBar.ActionButton>
+                <Button Content="Apply new paths"
+                        HorizontalAlignment="Right"
+                        Command="{x:Bind _viewModel.AutoFixCommand}" />
+            </InfoBar.ActionButton>
+        </InfoBar>
+
+        <ScrollView x:Name="PageContent"
+                    Grid.Row="2">
             <StackPanel Margin="16"
                         Spacing="16">
                 <StackPanel HorizontalAlignment="Center">
-                    <local:AdrenalineGameImage SourcePath="{x:Bind _viewModel.EffectiveImagePath, Mode=OneWay}"
-                                               Width="150"
-                                               Height="150"
-                                               CornerRadius="{StaticResource ControlCornerRadius}">
-                        <local:AdrenalineGameImage.ContextFlyout>
-                            <MenuFlyout>
-                                <MenuFlyoutItem Text="Copy image path"
-                                                Command="{x:Bind _viewModel.CopyImagePathCommand}" />
-                            </MenuFlyout>
-                        </local:AdrenalineGameImage.ContextFlyout>
-                    </local:AdrenalineGameImage>
+                    <Grid>
+                        <local:AdrenalineGameImage SourcePath="{x:Bind _viewModel.EffectiveImagePath, Mode=OneWay}"
+                                                   Width="150"
+                                                   Height="150"
+                                                   CornerRadius="{StaticResource ControlCornerRadius}">
+                            <local:AdrenalineGameImage.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="Copy image path"
+                                                    Command="{x:Bind _viewModel.CopyImagePathCommand}" />
+                                </MenuFlyout>
+                            </local:AdrenalineGameImage.ContextFlyout>
+                        </local:AdrenalineGameImage>
+
+                        <FontIcon Glyph="&#xE7BA;"
+                                  Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                  Visibility="{x:Bind _viewModel.ImagePathRequiresAttention, Mode=OneWay}"
+                                  Margin="16,8"
+                                  VerticalAlignment="Top"
+                                  HorizontalAlignment="Right"
+                                  ToolTipService.ToolTip="Image path does not exist or cannot be accessed." />
+                    </Grid>
                     <CommandBar DefaultLabelPosition="Right">
                         <AppBarButton Icon="Edit"
                                       Label="Edit"
                                       Command="{x:Bind _viewModel.EditImageCommand}" />
                         <AppBarButton Icon="Clear"
                                       Label="Remove"
-                                      IsEnabled="{x:Bind _viewModel.HasImagePath, Mode=OneWay}">
+                                      IsEnabled="{x:Bind _viewModel.ImagePath, Mode=OneWay, Converter={StaticResource IsNotEmptyStringConverter}}">
                             <AppBarButton.Flyout>
                                 <Flyout x:Name="RemoveImageFlyout">
                                     <Flyout.FlyoutPresenterStyle>
@@ -80,28 +164,34 @@
                         </AppBarButton>
                     </CommandBar>
                 </StackPanel>
-                <TextBox Text="{x:Bind _viewModel.DisplayName, Mode=TwoWay}"
+                <TextBox Text="{x:Bind _viewModel.DisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          Header="Display name" />
-                <TextBox Text="{x:Bind _viewModel.Command, Mode=TwoWay}"
+                <TextBox Text="{x:Bind _viewModel.Command, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          Header="Command" />
-                <StackPanel Spacing="8">
-                    <ComboBox ItemsSource="{x:Bind _viewModel.ExePathOptions, Mode=OneWay}"
-                              SelectedItem="{x:Bind _viewModel.SelectedExePathOption, Mode=TwoWay}"
-                              DisplayMemberPath="Display"
-                              Header="Executable path"
-                              HorizontalAlignment="Stretch" />
-                    <controls:SwitchPresenter Value="{x:Bind _viewModel.SelectedExePathOption.Value, Mode=OneWay}">
-                        <controls:Case IsDefault="True">
-                            <TextBlock Text="{x:Bind _viewModel.ExePath, Mode=OneWay}"
-                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                       Foreground="{StaticResource TextFillColorSecondaryBrush}" />
-                        </controls:Case>
-                        <controls:Case Value="!CUSTOM!">
-                            <TextBox Text="{x:Bind _viewModel.ExePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     TextWrapping="Wrap" />
-                        </controls:Case>
-                    </controls:SwitchPresenter>
-                </StackPanel>
+                <Grid>
+                    <StackPanel Spacing="8">
+                        <ComboBox x:Name="PackageExePaths"
+                                  ItemsSource="{x:Bind _viewModel.ExePathOptions, Mode=OneWay}"
+                                  SelectedItem="{x:Bind _viewModel.SelectedExePathOption, Mode=TwoWay}"
+                                  DisplayMemberPath="Display"
+                                  Header="Executable path"
+                                  HorizontalAlignment="Stretch" />
+                        <TextBlock x:Name="ExePathDisplay"
+                                   Text="{x:Bind _viewModel.ExePath, Mode=OneWay}"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Foreground="{StaticResource TextFillColorSecondaryBrush}"
+                                   Visibility="Collapsed" />
+                        <TextBox x:Name="CustomExeBox"
+                                 Text="{x:Bind _viewModel.ExePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 TextWrapping="Wrap" />
+                    </StackPanel>
+                    <FontIcon Glyph="&#xE7BA;"
+                              Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                              Visibility="{x:Bind _viewModel.ExePathRequiresAttention, Mode=OneWay}"
+                              VerticalAlignment="Top"
+                              HorizontalAlignment="Right"
+                              ToolTipService.ToolTip="Executable path does not exist or cannot be accessed." />
+                </Grid>
             </StackPanel>
         </ScrollView>
     </Grid>
