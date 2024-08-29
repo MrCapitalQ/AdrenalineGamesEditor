@@ -709,6 +709,29 @@ public class GameEditViewModelTests
     }
 
     [Fact]
+    public async Task BrowseExeAsync_PickerReturnsNull_DoesNothing()
+    {
+        _filePicker.PickSingleFileAsync(Arg.Any<PickerLocationId>(), Arg.Any<IEnumerable<string>>())
+            .Returns((string?)null);
+
+        await _viewModel.BrowseExeCommand.ExecuteAsync(null);
+
+        Assert.Null(_viewModel.ExePath);
+    }
+
+    [Fact]
+    public async Task BrowseExeAsync_PickerReturnsPath_DoesNothing()
+    {
+        var expected = @"C:\Path\Game.exe";
+        _filePicker.PickSingleFileAsync(Arg.Any<PickerLocationId>(), Arg.Any<IEnumerable<string>>())
+            .Returns(expected);
+
+        await _viewModel.BrowseExeCommand.ExecuteAsync(null);
+
+        Assert.Equal(expected, _viewModel.ExePath);
+    }
+
+    [Fact]
     public void RemoveImage_RemovesImagePath()
     {
         _viewModel.ImagePath = @"C:\Path\Image.png";
