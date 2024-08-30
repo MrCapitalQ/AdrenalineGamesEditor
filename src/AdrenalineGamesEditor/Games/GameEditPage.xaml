@@ -181,9 +181,20 @@
                                    Style="{StaticResource CaptionTextBlockStyle}"
                                    Foreground="{StaticResource TextFillColorSecondaryBrush}"
                                    Visibility="Collapsed" />
-                        <TextBox x:Name="CustomExeBox"
-                                 Text="{x:Bind _viewModel.ExePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 TextWrapping="Wrap" />
+                        <Grid x:Name="CustomExeBox"
+                              ColumnSpacing="8"
+                              HorizontalAlignment="Stretch">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{x:Bind _viewModel.ExePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     TextWrapping="Wrap" />
+                            <Button Content="Browse"
+                                    Command="{x:Bind _viewModel.BrowseExeCommand}"
+                                    VerticalAlignment="Bottom"
+                                    Grid.Column="1" />
+                        </Grid>
                     </StackPanel>
                     <FontIcon Glyph="&#xE7BA;"
                               Foreground="{ThemeResource SystemFillColorCautionBrush}"
